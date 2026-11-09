@@ -41,5 +41,5 @@ jobs:
           cache: npm
       - run: npm ci
       # Migrations run before the Worker so new code never meets an old schema; keep migrations backwards compatible.
-      - run: npx supabase db push --db-url "$SUPABASE_DB_URL"
+      - run: npx supabase db push --remote="$SUPABASE_DB_URL" --yes
       - run: npm run deploy
