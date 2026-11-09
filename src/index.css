@@ -145,5 +145,7 @@
   }
   html {
     @apply font-sans;
+    /* Reserve scrollbar space so layout doesn't shift between short and long pages */
+    scrollbar-gutter: stable;
   }
 }
