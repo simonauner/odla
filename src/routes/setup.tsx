@@ -22,7 +22,16 @@ export function SetupPage() {
       <section>
         <h2 className="mb-1 text-lg font-semibold">Var odlar du?</h2>
         <p className="mb-3 text-sm text-muted-foreground">
-          Välj odlingszon. Karta och förslag utifrån din position kommer senare.
+          Välj odlingszon. Vet du inte vilken zon du har? Kolla på{" "}
+          <a
+            href="https://zonkartan.se/"
+            target="_blank"
+            rel="noreferrer"
+            className="text-primary underline underline-offset-4"
+          >
+            zonkartan.se
+          </a>
+          .
         </p>
         <RadioGroup
           value={garden.zone === null ? "" : String(garden.zone)}
