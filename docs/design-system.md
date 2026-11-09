@@ -14,31 +14,31 @@ Odla använder [shadcn/ui](https://ui.shadcn.com) (stil `radix-nova`) på Tailwi
 
 Ljust läge är en varm, papperslik bakgrund med bladgrönt som enda accentfärg. Mörkt läge är varmt mörkbrunt med ljusare grönt.
 
-| Token | Används till |
-|---|---|
-| `background` / `foreground` | Sidans bakgrund och brödtext |
-| `card` / `card-foreground` | Kort, ytor som ligger ovanpå bakgrunden |
-| `primary` / `primary-foreground` | Den viktigaste handlingen på sidan, logotyp, länkar, valt läge på radioknappar. Högst en primärknapp per vy |
-| `secondary` / `secondary-foreground` | Valt tillstånd (vald gröda, vald zon), sekundära knappar. Ljusgrönt |
-| `muted` / `muted-foreground` | Hjälptext, datum, etiketter, tomma lägen |
-| `accent` / `accent-foreground` | Hover på menyer och listor (shadcn sköter det) |
-| `destructive` | Fel och handlingar som tar bort data |
-| `warning` / `warning-foreground` | Varningar som inte är fel, t.ex. gröda som är svår i zonen. Används via `<Badge variant="warning">` |
-| `border`, `input`, `ring` | Kanter, formulärfält, fokusring |
+| Token                                | Används till                                                                                                |
+| ------------------------------------ | ----------------------------------------------------------------------------------------------------------- |
+| `background` / `foreground`          | Sidans bakgrund och brödtext                                                                                |
+| `card` / `card-foreground`           | Kort, ytor som ligger ovanpå bakgrunden                                                                     |
+| `primary` / `primary-foreground`     | Den viktigaste handlingen på sidan, logotyp, länkar, valt läge på radioknappar. Högst en primärknapp per vy |
+| `secondary` / `secondary-foreground` | Valt tillstånd (vald gröda, vald zon), sekundära knappar. Ljusgrönt                                         |
+| `muted` / `muted-foreground`         | Hjälptext, datum, etiketter, tomma lägen                                                                    |
+| `accent` / `accent-foreground`       | Hover på menyer och listor (shadcn sköter det)                                                              |
+| `destructive`                        | Fel och handlingar som tar bort data                                                                        |
+| `warning` / `warning-foreground`     | Varningar som inte är fel, t.ex. gröda som är svår i zonen. Används via `<Badge variant="warning">`         |
+| `border`, `input`, `ring`            | Kanter, formulärfält, fokusring                                                                             |
 
 `chart-*` och `sidebar-*` är shadcn:s standardvärden och ska få egna färger först när vi bygger diagram eller sidomeny.
 
 ## Komponenter
 
-| Behov | Komponent |
-|---|---|
-| Handling | `Button`. `default` för huvudhandlingen, `outline`/`secondary` för övriga, `ghost` i verktygsrader, `destructive` för att ta bort |
-| Välj ett av flera | `RadioGroup` + `RadioGroupItem` inuti `Label` (hela rutan klickbar, se zonvalet i `setup.tsx`) |
-| Slå av/på ett val, flera tillåtna | `Toggle variant="outline"` (se grödvalet) |
-| En uppgift, gröda eller post i en lista | `Card size="sm"` med `CardHeader`/`CardTitle`, metadata i `CardAction`, brödtext i `CardContent` |
-| Status eller kort etikett | `Badge` (`warning` för varningar, `secondary` för neutral info) |
-| Fel- eller infomeddelande | `Alert` (`variant="destructive"` för fel) |
-| Etikett till formulärfält | `Label` |
+| Behov                                   | Komponent                                                                                                                         |
+| --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| Handling                                | `Button`. `default` för huvudhandlingen, `outline`/`secondary` för övriga, `ghost` i verktygsrader, `destructive` för att ta bort |
+| Välj ett av flera                       | `RadioGroup` + `RadioGroupItem` inuti `Label` (hela rutan klickbar, se zonvalet i `setup.tsx`)                                    |
+| Slå av/på ett val, flera tillåtna       | `Toggle variant="outline"` (se grödvalet)                                                                                         |
+| En uppgift, gröda eller post i en lista | `Card size="sm"` med `CardHeader`/`CardTitle`, metadata i `CardAction`, brödtext i `CardContent`                                  |
+| Status eller kort etikett               | `Badge` (`warning` för varningar, `secondary` för neutral info)                                                                   |
+| Fel- eller infomeddelande               | `Alert` (`variant="destructive"` för fel)                                                                                         |
+| Etikett till formulärfält               | `Label`                                                                                                                           |
 
 Lägg till fler med `npx shadcn@latest add <namn>` när de behövs, och lägg in dem i tabellen.
 

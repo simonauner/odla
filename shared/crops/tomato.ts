@@ -9,7 +9,8 @@ export const tomato: CropTemplate = {
       id: "sow",
       kind: "sow_indoor",
       title: "Förså tomater inomhus",
-      description: "Så 0,5 cm djupt i fuktig såjord, 22–25 °C tills groddarna syns. Ge mycket ljus direkt efter groning.",
+      description:
+        "Så 0,5 cm djupt i fuktig såjord, 22–25 °C tills groddarna syns. Ge mycket ljus direkt efter groning.",
       anchor: { type: "last_frost" },
       window: [-56, -42],
     },

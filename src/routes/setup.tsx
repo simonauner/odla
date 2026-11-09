@@ -21,7 +21,9 @@ export function SetupPage() {
     <div className="space-y-8">
       <section>
         <h2 className="mb-1 text-lg font-semibold">Var odlar du?</h2>
-        <p className="mb-3 text-sm text-muted-foreground">Välj odlingszon. Karta och förslag utifrån din position kommer senare.</p>
+        <p className="mb-3 text-sm text-muted-foreground">
+          Välj odlingszon. Karta och förslag utifrån din position kommer senare.
+        </p>
         <RadioGroup
           value={garden.zone === null ? "" : String(garden.zone)}
           onValueChange={(v) => setGarden((g) => ({ ...g, zone: Number(v) }))}

@@ -33,7 +33,7 @@ describe("planCrop för tomat i zon III 2027 (sista frost 15 maj, första frost 
 
   it("returnerar uppgifterna i datumordning med unika nycklar", () => {
     const starts = plan.map((t) => t.start);
-    expect(starts).toEqual([...starts].sort());
+    expect(starts).toEqual(starts.toSorted());
     expect(new Set(plan.map((t) => t.key)).size).toBe(plan.length);
   });
 });
