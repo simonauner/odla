@@ -1,5 +1,4 @@
 import { Link, Outlet, createRootRoute, createRoute, createRouter } from "@tanstack/react-router";
-import { Sprout } from "lucide-react";
 import { useSession } from "./lib/auth";
 import { LoginPage } from "./routes/login";
 import { PlacePage } from "./routes/place";
@@ -15,9 +14,8 @@ function Root() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-6">
       <header className="mb-8 flex flex-wrap items-center justify-between gap-2">
-        <Link to="/" className="flex items-center gap-1.5 font-heading text-2xl font-semibold text-primary">
-          <Sprout aria-hidden className="size-6" />
-          Odla
+        <Link to="/" className="inline-flex shrink-0">
+          <img src="/grodla-logo.svg" alt="Grodla" width={148} height={36} />
         </Link>
         {session && (
           <nav className="flex items-center gap-4 text-sm text-muted-foreground">
