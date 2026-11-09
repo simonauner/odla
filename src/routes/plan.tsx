@@ -6,6 +6,8 @@ import {
   FlaskConical,
   Flower2,
   Leaf,
+  ListFilter,
+  Mountain,
   Scissors,
   Shovel,
   Sprout,
@@ -40,6 +42,8 @@ function localToday(): string {
 const kindIcon: Record<TaskKind, LucideIcon> = {
   sow_indoor: Sprout,
   pot_up: Flower2,
+  thin: ListFilter,
+  hill: Mountain,
   harden_off: Sun,
   plant_out: Shovel,
   sow_outdoor: Sprout,
