@@ -39,6 +39,8 @@ Ljust läge är en varm, papperslik bakgrund med bladgrönt som enda accentfärg
 | Status eller kort etikett               | `Badge` (`warning` för varningar, `secondary` för neutral info)                                                                   |
 | Fel- eller infomeddelande               | `Alert` (`variant="destructive"` för fel)                                                                                         |
 | Etikett till formulärfält               | `Label`                                                                                                                           |
+| Textfält                                | `Input` med `Label htmlFor` (se `login.tsx`)                                                                                      |
+| Bocka av                                | `Checkbox` (se uppgifterna i `plan.tsx`)                                                                                          |
 
 Lägg till fler med `npx shadcn@latest add <namn>` när de behövs, och lägg in dem i tabellen.
 
