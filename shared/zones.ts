@@ -13,18 +13,18 @@ export interface ZoneInfo {
 }
 
 /**
- * Median för sista vårfrost och första höstfrost (dygnets lägsta lufttemperatur under 0 °C
- * på 2 m höjd) 1991–2020, räknat ur SMHI:s öppna stationsdata (parameter 19) och avrundat
- * till närmaste 5 dagar. Stationer per zon:
+ * Median last spring frost and first autumn frost (daily minimum air temperature below 0 °C
+ * at 2 m) for 1991–2020, computed from SMHI open station data (parameter 19) and rounded to
+ * the nearest 5 days. Stations per zone:
  *   I: Lund, Ängelholm, Kristianstad, Visby   II: Göteborg, Varberg, Kalmar, Ronneby
  *   III: Stockholm-Bromma, Uppsala, Linköping, Vänersborg, Borås, Eskilstuna
  *   IV: Karlstad, Jönköping   V: Falun, Borlänge, Hudiksvall, Mora
  *   VI: Sundsvall, Härnösand, Östersund   VII: Umeå, Luleå, Piteå, Arvidsjaur
  *   VIII: Kiruna, Gällivare, Lycksele
- * Odlingszonerna bygger på vinterkyla och säsongens längd, inte frost, så kusten i zon V–VI
- * har lika tidig vår som zon IV. En nordligare zon får aldrig tidigare vårfrost eller senare
- * höstfrost än zonen söder om den. Medianen betyder frost efter datumet vart annat år, och
- * lokalklimatet kan skilja flera veckor.
+ * Growing zones reflect winter cold and season length, not frost, so the coast in zones V–VI
+ * gets spring as early as zone IV. A more northern zone never gets an earlier spring frost or
+ * a later autumn frost than the zone south of it. A median means frost after the date every
+ * other year, and local climate can differ by several weeks.
  */
 export const ZONES: readonly ZoneInfo[] = [
   {
