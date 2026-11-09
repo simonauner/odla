@@ -31,17 +31,18 @@ Känslan ska vara fräsch och peppig men ordnad. Ljust läge är en varm, grädd
 
 ## Komponenter
 
-| Behov                                   | Komponent                                                                                                                         |
-| --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| Handling                                | `Button`. `default` för huvudhandlingen, `outline`/`secondary` för övriga, `ghost` i verktygsrader, `destructive` för att ta bort |
-| Välj ett av flera                       | `RadioGroup` + `RadioGroupItem` inuti `Label` (hela rutan klickbar, se zonvalet i `setup.tsx`)                                    |
-| Slå av/på ett val, flera tillåtna       | `Toggle variant="outline"` (se grödvalet)                                                                                         |
-| En uppgift, gröda eller post i en lista | `Card size="sm"` med `CardHeader`/`CardTitle`, metadata i `CardAction`, brödtext i `CardContent`                                  |
-| Status eller kort etikett               | `Badge` (`warning` för varningar, `secondary` för neutral info)                                                                   |
-| Fel- eller infomeddelande               | `Alert` (`variant="destructive"` för fel)                                                                                         |
-| Etikett till formulärfält               | `Label`                                                                                                                           |
-| Textfält                                | `Input` med `Label htmlFor` (se `login.tsx`)                                                                                      |
-| Bocka av                                | `Checkbox` (se uppgifterna i `plan.tsx`)                                                                                          |
+| Behov                                   | Komponent                                                                                                                                               |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Handling                                | `Button`. `default` för huvudhandlingen, `outline`/`secondary` för övriga, `ghost` i verktygsrader, `destructive-ghost` för att ta bort                 |
+| Välj ett av flera                       | `RadioGroup` + `RadioGroupItem` inuti `Label` (hela rutan klickbar, se zonvalet i `setup.tsx`)                                                          |
+| Slå av/på ett val, flera tillåtna       | `Toggle variant="outline"` (se grödvalet)                                                                                                               |
+| En uppgift, gröda eller post i en lista | `Card size="sm"` med `CardHeader`/`CardTitle`, metadata i `CardAction`, brödtext i `CardContent`                                                        |
+| Status eller kort etikett               | `Badge` (`warning` för varningar, `secondary` för neutral info)                                                                                         |
+| Fel- eller infomeddelande               | `Alert` (`variant="destructive"` för fel)                                                                                                               |
+| Etikett till formulärfält               | `Label`                                                                                                                                                 |
+| Textfält                                | `Input` med `Label htmlFor` (se `login.tsx`)                                                                                                            |
+| Bekräfta innan något tas bort           | `ConfirmButton` från `src/components/confirm-button.tsx` (`variant="destructive-ghost"`), öppnar en `AlertDialog` med Avbryt och en `destructive`-knapp |
+| Bocka av                                | `Checkbox` (se uppgifterna i `plan.tsx`)                                                                                                                |
 
 Lägg till fler med `npx shadcn@latest add <namn>` när de behövs, och lägg in dem i tabellen.
 

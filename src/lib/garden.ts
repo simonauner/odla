@@ -103,6 +103,22 @@ export function useSetLastFrost() {
   });
 }
 
+/** Deletes a place and, through the database cascade, all its seasons, crops and logs. */
+export function useDeleteGarden() {
+  const userId = useUserId();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (gardenId: string) => {
+      unwrap(await supabase.from("gardens").delete().eq("id", gardenId));
+    },
+    onSuccess: () =>
+      Promise.all([
+        qc.invalidateQueries({ queryKey: ["gardens", userId] }),
+        qc.invalidateQueries({ queryKey: ["seasons", userId] }),
+      ]),
+  });
+}
+
 export function useToggleCrop() {
   const userId = useUserId();
   const qc = useQueryClient();
