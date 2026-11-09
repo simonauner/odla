@@ -8,27 +8,27 @@ import { ZONES } from "./zones";
 
 const byStep = (tasks: ReturnType<typeof planCrop>, stepId: string) => tasks.filter((t) => t.stepId === stepId);
 
-describe("planCrop för tomat i zon III 2027 (sista frost 15 maj, första frost 5 okt)", () => {
+describe("planCrop för tomat i zon III 2027 (sista frost 10 maj, första frost 5 okt)", () => {
   const plan = planCrop({ crop: tomato, zone: 3, year: 2027 });
 
   it("förså 6–8 veckor före sista frost", () => {
-    expect(byStep(plan, "sow")).toMatchObject([{ start: "2027-03-20", end: "2027-04-03" }]);
+    expect(byStep(plan, "sow")).toMatchObject([{ start: "2027-03-15", end: "2027-03-29" }]);
   });
 
   it("skolar om 3–4 veckor efter sådd", () => {
-    expect(byStep(plan, "pot_up")).toMatchObject([{ start: "2027-04-10", end: "2027-04-17" }]);
+    expect(byStep(plan, "pot_up")).toMatchObject([{ start: "2027-04-05", end: "2027-04-12" }]);
   });
 
   it("planterar ut en till två veckor efter sista frost och avhärdar före", () => {
-    expect(byStep(plan, "plant_out")).toMatchObject([{ start: "2027-05-22", end: "2027-05-29" }]);
-    expect(byStep(plan, "harden_off")).toMatchObject([{ start: "2027-05-12", end: "2027-05-19" }]);
+    expect(byStep(plan, "plant_out")).toMatchObject([{ start: "2027-05-17", end: "2027-05-24" }]);
+    expect(byStep(plan, "harden_off")).toMatchObject([{ start: "2027-05-07", end: "2027-05-14" }]);
   });
 
   it("gödslar varje vecka från två veckor efter utplantering till två veckor före frost", () => {
     const fertilize = byStep(plan, "fertilize");
-    expect(fertilize[0]!.start).toBe("2027-06-05");
-    expect(fertilize.at(-1)!.start).toBe("2027-09-18");
-    expect(fertilize).toHaveLength(16);
+    expect(fertilize[0]!.start).toBe("2027-05-31");
+    expect(fertilize.at(-1)!.start).toBe("2027-09-20");
+    expect(fertilize).toHaveLength(17);
   });
 
   it("returnerar uppgifterna i datumordning med unika nycklar", () => {
@@ -44,7 +44,7 @@ describe("faktiska datum", () => {
     expect(byStep(plan, "sow")[0]!.start).toBe("2027-04-01");
     expect(byStep(plan, "pot_up")[0]!.start).toBe("2027-04-22");
     // Utplanteringen räknas från frosten, inte från sådden.
-    expect(byStep(plan, "plant_out")[0]!.start).toBe("2027-05-22");
+    expect(byStep(plan, "plant_out")[0]!.start).toBe("2027-05-17");
   });
 
   it("räknar om gödslingen från den verkliga utplanteringen", () => {

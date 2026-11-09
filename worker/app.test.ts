@@ -8,7 +8,7 @@ describe("API", () => {
     const res = await get("/api/plan?zone=3&year=2027&crops=tomato");
     expect(res.status).toBe(200);
     const body = (await res.json()) as { tasks: { stepId: string; start: string }[] };
-    expect(body.tasks[0]).toMatchObject({ stepId: "sow", start: "2027-03-20" });
+    expect(body.tasks[0]).toMatchObject({ stepId: "sow", start: "2027-03-15" });
   });
 
   it.each([
