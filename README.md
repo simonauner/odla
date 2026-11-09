@@ -5,7 +5,7 @@ Planera, följ upp och utvärdera din odling. Du väljer odlingszon och vad du v
 ## Stack
 
 - **Frontend:** React 19 + Vite + TanStack Router/Query + Tailwind + shadcn/ui (`src/`). Regler för färger och komponenter: [docs/design-system.md](docs/design-system.md)
-- **API:** Hono på Cloudflare Workers (`worker/`). Samma Worker serverar SPA:n och `/api/*`
+- **API:** Hono på Cloudflare Workers (`worker/`). Samma Worker serverar den statiska startsidan på `/`, appen på `/app` och `/api/*`
 - **Delad kod:** planmotor, zoner och grödmallar i TypeScript (`shared/`), som används av både webben och API:t
 - **Databas, inloggning och foton:** Supabase-projektet `haiidlamhbdgfugosykm` (eu-north-1, Stockholm). Migreringarna i `supabase/migrations/` är körda. Webben pratar direkt med Supabase via `supabase-js` med användarens session; RLS begränsar allt till egna rader. Den publika URL:en och publishable-nyckeln finns i `wrangler.jsonc` och `.env`; inga hemliga nycklar finns i repot
 
@@ -23,7 +23,7 @@ npm run deploy   # bygger och driftsätter till Cloudflare (kräver `npx wrangle
 
 E-post och lösenord via Supabase Auth (`src/lib/auth.tsx`, `src/routes/login.tsx`). Utloggade ser bara inloggningssidan. Zon, säsong, grödor och avbockade steg sparas i databasen (`src/lib/garden.ts`), och planen räknas fram i webbläsaren med `planSeason()` i `shared/season.ts`.
 
-I Supabase under **Authentication → URL Configuration** ska _Site URL_ vara appens adress, och `http://localhost:*/**` ska finnas under _Redirect URLs_. Jokertecknet behövs eftersom parallella worktrees får varsin port (5173, 5174 …) via `autoPort` i `.claude/launch.json`. Annars pekar bekräftelselänken i mejlet fel. Supabase inbyggda e-post skickar bara ett fåtal mejl i timmen. Koppla in egen SMTP, t.ex. Resend, före lansering.
+I Supabase under **Authentication → URL Configuration** ska _Site URL_ vara sajtens adress, och både `https://<domän>/app` och `http://localhost:*/**` ska finnas under _Redirect URLs_ (bekräftelselänken leder till `/app`). Jokertecknet behövs eftersom parallella worktrees får varsin port (5173, 5174 …) via `autoPort` i `.claude/launch.json`. Annars pekar bekräftelselänken i mejlet fel. Supabase inbyggda e-post skickar bara ett fåtal mejl i timmen. Koppla in egen SMTP, t.ex. Resend, före lansering.
 
 ## Planmotorn
 
