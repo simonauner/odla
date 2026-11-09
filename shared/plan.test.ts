@@ -73,6 +73,20 @@ describe("zoner", () => {
   it.each(ZONES.map((z) => z.zone))("alla grödor går att planera i zon %i", (zone) => {
     for (const crop of CROPS) expect(planCrop({ crop, zone, year: 2027 }).length).toBeGreaterThan(0);
   });
+
+  it.each(ZONES.map((z) => z.zone))("alla grödors uppgifter ligger inom året i zon %i", (zone) => {
+    const outside = CROPS.flatMap((crop) => planCrop({ crop, zone, year: 2027 }))
+      .filter((t) => t.start < "2027-01-01" || t.end > "2027-12-31")
+      .map((t) => t.key);
+    expect(outside).toEqual([]);
+  });
+});
+
+describe("grödbiblioteket", () => {
+  it("har unika id:n och en skörd per gröda", () => {
+    expect(new Set(CROPS.map((c) => c.id)).size).toBe(CROPS.length);
+    expect(CROPS.filter((c) => !c.steps.some((s) => s.kind === "harvest")).map((c) => c.id)).toEqual([]);
+  });
 });
 
 describe("felaktiga mallar", () => {
