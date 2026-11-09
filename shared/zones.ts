@@ -1,4 +1,4 @@
-import { isoDate, type IsoDate } from "./dates";
+import { addDays, isoDate, type IsoDate } from "./dates";
 
 export type Zone = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
 
@@ -70,4 +70,16 @@ export function frostDates(zone: Zone, year: number): { lastFrost: IsoDate; firs
     lastFrost: isoDate(year, lastFrost[0], lastFrost[1]),
     firstFrost: isoDate(year, firstFrost[0], firstFrost[1]),
   };
+}
+
+export type GardenKind = "open" | "greenhouse";
+
+/** How many days earlier an unheated greenhouse is frost free than the open ground around it. */
+// shortcut: one rough offset for every zone, replace with measured data if users report it is off.
+export const GREENHOUSE_FROST_HEAD_START = 21;
+
+/** Our guess for a place's last spring frost; the user can correct it per season. */
+export function guessLastFrost(zone: Zone, year: number, kind: GardenKind): IsoDate {
+  const { lastFrost } = frostDates(zone, year);
+  return kind === "greenhouse" ? addDays(lastFrost, -GREENHOUSE_FROST_HEAD_START) : lastFrost;
 }

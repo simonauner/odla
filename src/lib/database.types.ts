@@ -8,19 +8,39 @@ export type Database = {
   public: {
     Tables: {
       profiles: Table<
-        { id: string; display_name: string | null; zone: number | null; created_at: string },
-        { id: string; display_name?: string | null; zone?: number | null; created_at?: string }
+        { id: string; display_name: string | null; created_at: string },
+        { id: string; display_name?: string | null; created_at?: string }
+      >;
+      gardens: Table<
+        { id: string; user_id: string; name: string; zone: number; kind: string; created_at: string },
+        { id?: string; user_id: string; name: string; zone: number; kind?: string; created_at?: string }
       >;
       seasons: Table<
-        { id: string; user_id: string; year: number; zone: number; last_frost: string | null; created_at: string },
+        {
+          id: string;
+          user_id: string;
+          garden_id: string;
+          year: number;
+          last_frost: string | null;
+          created_at: string;
+        },
         {
           id?: string;
           user_id: string;
+          garden_id: string;
           year: number;
-          zone: number;
           last_frost?: string | null;
           created_at?: string;
-        }
+        },
+        [
+          {
+            foreignKeyName: "seasons_garden_id_fkey";
+            columns: ["garden_id"];
+            isOneToOne: false;
+            referencedRelation: "gardens";
+            referencedColumns: ["id"];
+          },
+        ]
       >;
       plantings: Table<
         {

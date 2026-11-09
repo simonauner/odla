@@ -18,7 +18,7 @@ import { addDays, startOfWeek } from "@shared/dates";
 import { tasksBetween } from "@shared/plan";
 import { planSeason, type SeasonTask } from "@shared/season";
 import type { TaskKind } from "@shared/crops/types";
-import type { Zone } from "@shared/zones";
+import { guessLastFrost } from "@shared/zones";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -27,8 +27,12 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatDay, locale } from "@/lib/format";
-import { seasonYear, useLogTask, useSeason } from "@/lib/garden";
+import { seasonYear, useLogTask, useSeasons } from "@/lib/garden";
 import { cn } from "@/lib/utils";
+import { placeLabel } from "./setup";
+
+/** A task, with the place's name when the user grows in more than one place. */
+type Task = SeasonTask & { place?: string };
 
 const monthFmt = new Intl.DateTimeFormat(locale, { month: "long" });
 const longDateFmt = new Intl.DateTimeFormat(locale, { weekday: "long", day: "numeric", month: "long" });
@@ -60,7 +64,7 @@ function greeting(): string {
   return "God kväll";
 }
 
-function TaskRow({ task }: { task: SeasonTask }) {
+function TaskRow({ task }: { task: Task }) {
   const save = useLogTask();
   const [open, setOpen] = useState(false);
   const log = task.log;
@@ -98,6 +102,7 @@ function TaskRow({ task }: { task: SeasonTask }) {
             />
             <Icon aria-hidden className="size-4 shrink-0 text-primary" />
             <span className={log ? "text-muted-foreground line-through" : undefined}>{task.title}</span>
+            {task.place && <Badge variant="outline">{task.place}</Badge>}
             {skipped && <Badge variant="secondary">Överhoppad</Badge>}
           </CardTitle>
           <CardAction className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -166,7 +171,7 @@ function TaskRow({ task }: { task: SeasonTask }) {
   );
 }
 
-function TaskList({ tasks }: { tasks: SeasonTask[] }) {
+function TaskList({ tasks }: { tasks: Task[] }) {
   return (
     <ul className="space-y-2">
       {tasks.map((t) => (
@@ -177,16 +182,16 @@ function TaskList({ tasks }: { tasks: SeasonTask[] }) {
 }
 
 export function PlanPage() {
-  const season = useSeason();
+  const seasons = useSeasons();
 
-  if (season.isPending) return <p className="text-muted-foreground">Laddar din plan…</p>;
-  if (season.isError)
+  if (seasons.isPending) return <p className="text-muted-foreground">Laddar din plan…</p>;
+  if (seasons.isError)
     return (
       <Alert variant="destructive">
         <AlertDescription>Kunde inte hämta planen.</AlertDescription>
       </Alert>
     );
-  if (!season.data || season.data.plantings.length === 0) {
+  if (!seasons.data.some((s) => s.plantings.length > 0)) {
     return (
       <section className="space-y-4 rounded-3xl bg-secondary p-6 text-secondary-foreground sm:p-8">
         <Sprout aria-hidden className="size-10" />
@@ -195,18 +200,23 @@ export function PlanPage() {
           Välj var du bor och vad du vill odla, så räknar vi ut när du ska så, plantera och skörda.
         </p>
         <Button asChild size="lg">
-          <Link to="/setup">Välj zon och grödor</Link>
+          <Link to="/setup">Kom igång</Link>
         </Button>
       </section>
     );
   }
 
-  const tasks = planSeason(
-    season.data.zone as Zone,
-    season.data.year,
-    season.data.plantings,
-    season.data.last_frost ?? undefined,
-  );
+  const several = seasons.data.length > 1;
+  const tasks: Task[] = seasons.data
+    .flatMap((s) =>
+      planSeason(
+        s.garden.zone,
+        s.year,
+        s.plantings,
+        s.last_frost ?? guessLastFrost(s.garden.zone, s.year, s.garden.kind),
+      ).map((t) => (several ? { ...t, place: s.garden.name } : t)),
+    )
+    .toSorted((a, b) => a.start.localeCompare(b.start) || a.key.localeCompare(b.key));
   const today = localToday();
   const monday = startOfWeek(today);
   const sunday = addDays(monday, 6);
@@ -264,6 +274,34 @@ export function PlanPage() {
             <TaskList tasks={upcoming} />
           </>
         )}
+      </section>
+
+      <section>
+        <h2 className="mb-3 font-heading text-2xl font-semibold">Odlingsplatser</h2>
+        <ul className="grid gap-2 sm:grid-cols-2">
+          {seasons.data.map((s) => (
+            <li key={s.id}>
+              <Card size="sm">
+                <CardHeader>
+                  <CardTitle>{s.garden.name}</CardTitle>
+                  <CardAction>
+                    <Button asChild variant="ghost" size="sm">
+                      <Link to="/plats/$seasonId" params={{ seasonId: s.id }}>
+                        Ändra
+                      </Link>
+                    </Button>
+                  </CardAction>
+                </CardHeader>
+                <CardContent className="text-muted-foreground">
+                  {placeLabel(s.garden)} · {s.plantings.length} {s.plantings.length === 1 ? "gröda" : "grödor"}
+                </CardContent>
+              </Card>
+            </li>
+          ))}
+        </ul>
+        <Button asChild variant="outline" className="mt-3">
+          <Link to="/setup">Lägg till plats</Link>
+        </Button>
       </section>
 
       <section>

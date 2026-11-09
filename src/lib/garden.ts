@@ -1,62 +1,97 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { currentSeasonYear } from "@shared/season";
+import type { GardenKind, Zone } from "@shared/zones";
 import { useUserId } from "./auth";
 import { supabase } from "./supabase";
 
 export const seasonYear = currentSeasonYear();
 
-function unwrap<T>({ data, error }: { data: T; error: unknown }): T {
+/** Throws the request's error. Without one, select, insert and single always return data. */
+function unwrap<T>({ data, error }: { data: T; error: unknown }): NonNullable<T> {
   if (error) throw error;
-  return data;
+  return data as NonNullable<T>;
 }
 
-export function useProfile() {
+export function useGardens() {
   const userId = useUserId();
   return useQuery({
-    queryKey: ["profile", userId],
-    queryFn: async () => unwrap(await supabase.from("profiles").select("*").eq("id", userId).single()),
+    queryKey: ["gardens", userId],
+    queryFn: async () =>
+      unwrap(await supabase.from("gardens").select("id, name, zone, kind").order("created_at")).map((g) => ({
+        ...g,
+        zone: g.zone as Zone,
+        kind: g.kind as GardenKind,
+      })),
   });
 }
 
-export function useSeason(year = seasonYear) {
+/** Every place's to-do list for the year. */
+export function useSeasons(year = seasonYear) {
   const userId = useUserId();
   return useQuery({
-    queryKey: ["season", userId, year],
+    queryKey: ["seasons", userId, year],
     queryFn: async () =>
       unwrap(
         await supabase
           .from("seasons")
           .select(
-            "id, year, zone, last_frost, plantings(id, crop_id, created_at, task_logs(step_key, status, done_on, note))",
+            "id, year, last_frost, garden:gardens!inner(id, name, zone, kind), plantings(id, crop_id, created_at, task_logs(step_key, status, done_on, note))",
           )
           .eq("year", year)
-          .maybeSingle(),
-      ),
+          .order("created_at"),
+      ).map((s) => ({ ...s, garden: { ...s.garden, zone: s.garden.zone as Zone, kind: s.garden.kind as GardenKind } })),
   });
 }
 
-/** Sparar zonen som standard i profilen och för säsongen (skapar säsongen vid behov). */
-export function useSetZone(year = seasonYear) {
+export type Season = NonNullable<ReturnType<typeof useSeasons>["data"]>[number];
+
+export interface NewSeason {
+  /** An existing place, or a new one to create. */
+  garden: { id: string } | { name: string; zone: Zone; kind: GardenKind };
+  lastFrost: string;
+  cropIds: string[];
+}
+
+/** Creates a place's to-do list for the year: the place if new, the season and its crops. Returns the season id. */
+export function useCreateSeason(year = seasonYear) {
   const userId = useUserId();
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (zone: number) => {
-      unwrap(await supabase.from("profiles").update({ zone }).eq("id", userId));
-      // A new zone means a new place, so the user's own frost date no longer applies.
-      unwrap(
+    mutationFn: async ({ garden, lastFrost, cropIds }: NewSeason) => {
+      // shortcut: three requests without a transaction, so a failure can leave a place or an empty season behind; move to an RPC if that happens.
+      const gardenId =
+        "id" in garden
+          ? garden.id
+          : unwrap(
+              await supabase
+                .from("gardens")
+                .insert({ ...garden, user_id: userId })
+                .select("id")
+                .single(),
+            ).id;
+      const season = unwrap(
         await supabase
           .from("seasons")
-          .upsert({ user_id: userId, year, zone, last_frost: null }, { onConflict: "user_id,year" }),
+          .insert({ user_id: userId, garden_id: gardenId, year, last_frost: lastFrost })
+          .select("id")
+          .single(),
       );
+      unwrap(
+        await supabase
+          .from("plantings")
+          .insert(cropIds.map((crop_id) => ({ season_id: season.id, user_id: userId, crop_id }))),
+      );
+      return season.id;
     },
     onSuccess: () =>
-      qc
-        .invalidateQueries({ queryKey: ["profile", userId] })
-        .then(() => qc.invalidateQueries({ queryKey: ["season", userId] })),
+      Promise.all([
+        qc.invalidateQueries({ queryKey: ["gardens", userId] }),
+        qc.invalidateQueries({ queryKey: ["seasons", userId] }),
+      ]),
   });
 }
 
-/** Saves the user's own last frost date for the season. `null` goes back to the zone's date. */
+/** Saves the user's own last frost date for the season. `null` goes back to our guess. */
 export function useSetLastFrost() {
   const userId = useUserId();
   const qc = useQueryClient();
@@ -64,7 +99,7 @@ export function useSetLastFrost() {
     mutationFn: async (args: { seasonId: string; lastFrost: string | null }) => {
       unwrap(await supabase.from("seasons").update({ last_frost: args.lastFrost }).eq("id", args.seasonId));
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["season", userId] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["seasons", userId] }),
   });
 }
 
@@ -79,7 +114,7 @@ export function useToggleCrop() {
           await supabase.from("plantings").insert({ season_id: args.seasonId, user_id: userId, crop_id: args.cropId }),
         );
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["season", userId] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["seasons", userId] }),
   });
 }
 
@@ -113,6 +148,6 @@ export function useLogTask() {
         );
       }
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["season", userId] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["seasons", userId] }),
   });
 }

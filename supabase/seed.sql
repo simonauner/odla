@@ -19,13 +19,18 @@ values (
 );
 
 -- The profile is created by the on_auth_user_created trigger.
-update public.profiles set display_name = 'Testagent', zone = 3 where id = '11111111-1111-1111-1111-111111111111';
+update public.profiles set display_name = 'Testagent' where id = '11111111-1111-1111-1111-111111111111';
+
+insert into public.gardens (id, user_id, name, zone, kind) values
+  ('44444444-4444-4444-4444-444444444441', '11111111-1111-1111-1111-111111111111', 'Hemma', 3, 'open'),
+  ('44444444-4444-4444-4444-444444444442', '11111111-1111-1111-1111-111111111111', 'Lantstället', 6, 'open');
 
 -- Season for the current growing year (same rule as currentSeasonYear: from October it is next year).
-insert into public.seasons (id, user_id, year, zone)
+-- Only "Hemma" has a season, so "Lantstället" can be picked when adding a new one.
+insert into public.seasons (id, user_id, garden_id, year)
 values (
-  '22222222-2222-2222-2222-222222222222', '11111111-1111-1111-1111-111111111111',
-  extract(year from now())::smallint + (case when extract(month from now()) >= 10 then 1 else 0 end), 3
+  '22222222-2222-2222-2222-222222222222', '11111111-1111-1111-1111-111111111111', '44444444-4444-4444-4444-444444444441',
+  extract(year from now())::smallint + (case when extract(month from now()) >= 10 then 1 else 0 end)
 );
 
 insert into public.plantings (id, season_id, user_id, crop_id) values
