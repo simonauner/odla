@@ -19,3 +19,27 @@ jobs:
       - run: npm run lint
       - run: npm run format:check
       - run: npm test
+
+  deploy:
+    needs: check
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    # One deploy at a time; a newer push waits instead of racing migrations.
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
+    env:
+      # Session pooler URL: GitHub runners have no IPv6, the direct DB host is IPv6-only.
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@v5.0.0
+      - uses: actions/setup-node@v5.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      # Migrations run before the Worker so new code never meets an old schema; keep migrations backwards compatible.
+      - run: npx supabase db push --db-url "$SUPABASE_DB_URL"
+      - run: npm run deploy
