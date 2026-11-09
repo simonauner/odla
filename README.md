@@ -31,11 +31,10 @@ En gröda (`shared/crops/*.ts`) är en lista steg. Varje steg har ett **ankare**
 
 Databasen lagrar inte planen. Den lagrar bara det som faktiskt hände (`task_logs`). Planen räknas om med `actuals`, så att steg som beror på ett försenat steg flyttas med.
 
-Frostdatumen per zon i `shared/zones.ts` är grova schablonvärden och behöver kalibreras, till exempel mot SMHI:s data.
+Frostdatumen per zon i `shared/zones.ts` och odlingsfönstren i grödmallarna är grova schablonvärden och behöver kalibreras, till exempel mot SMHI:s data.
 
 ## Nästa steg
 
-1. Flytta uppgifter, hoppa över och skriva anteckningar (status `skipped` och `note` i `task_logs`)
-2. Foton per plantering (Supabase Storage, privat bucket `photos`)
-3. Zonförslag utifrån karta eller position
-4. Utvärdering efter säsongen; betalning (Stripe) för obegränsat antal foton och AI-analys
+1. Foton per plantering (Supabase Storage, privat bucket `photos`)
+2. Zonförslag utifrån karta eller position
+3. Utvärdering efter säsongen; betalning (Stripe) för obegränsat antal foton och AI-analys
