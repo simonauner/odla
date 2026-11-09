@@ -25,24 +25,26 @@ export function useGardens() {
   });
 }
 
-/** Every place's to-do list for the year. */
-export function useSeasons(year = seasonYear) {
+/** Every season the user has had, all years, oldest first. Pages pick the open ones or one year. */
+// shortcut: loads every year with its logs, add a year filter when history grows large.
+export function useSeasons() {
   const userId = useUserId();
   return useQuery({
-    queryKey: ["seasons", userId, year],
+    queryKey: ["seasons", userId],
     queryFn: async () =>
       unwrap(
         await supabase
           .from("seasons")
           .select(
-            "id, year, last_frost, garden:gardens!inner(id, name, zone, kind), plantings(id, crop_id, created_at, task_logs(step_key, status, done_on, note))",
+            "id, year, last_frost, closed_at, remind_on, garden:gardens!inner(id, name, zone, kind), plantings(id, crop_id, created_at, task_logs(step_key, status, done_on, note))",
           )
-          .eq("year", year)
+          .order("year")
           .order("created_at"),
       ).map((s) => ({ ...s, garden: { ...s.garden, zone: s.garden.zone as Zone, kind: s.garden.kind as GardenKind } })),
   });
 }
 
+export type Garden = NonNullable<ReturnType<typeof useGardens>["data"]>[number];
 export type Season = NonNullable<ReturnType<typeof useSeasons>["data"]>[number];
 
 export interface NewSeason {
@@ -88,6 +90,26 @@ export function useCreateSeason(year = seasonYear) {
         qc.invalidateQueries({ queryKey: ["gardens", userId] }),
         qc.invalidateQueries({ queryKey: ["seasons", userId] }),
       ]),
+  });
+}
+
+/** Closes a season (`closed: true`) or reopens it, or snoozes the question about closing to `remindOn`. */
+export function useUpdateSeason() {
+  const userId = useUserId();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ seasonId, ...change }: { seasonId: string; closed?: boolean; remindOn?: string }) => {
+      unwrap(
+        await supabase
+          .from("seasons")
+          .update({
+            ...(change.closed !== undefined && { closed_at: change.closed ? new Date().toISOString() : null }),
+            ...(change.remindOn && { remind_on: change.remindOn }),
+          })
+          .eq("id", seasonId),
+      );
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["seasons", userId] }),
   });
 }
 

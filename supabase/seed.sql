@@ -41,3 +41,14 @@ insert into public.plantings (id, season_id, user_id, crop_id) values
 insert into public.task_logs (planting_id, user_id, step_key, status, done_on)
 select '33333333-3333-3333-3333-333333333331', '11111111-1111-1111-1111-111111111111', 'sow:0', 'done', make_date(year, 3, 25)
 from public.seasons where id = '22222222-2222-2222-2222-222222222222';
+
+-- Last year's season at "Lantstället", still open: the plan asks whether to close it, and the
+-- setup flow prefills its crops and frost date when planning this year there.
+insert into public.seasons (id, user_id, garden_id, year, last_frost)
+select '22222222-2222-2222-2222-222222222223', '11111111-1111-1111-1111-111111111111', '44444444-4444-4444-4444-444444444442',
+  year - 1, make_date(year - 1, 6, 5)
+from public.seasons where id = '22222222-2222-2222-2222-222222222222';
+
+insert into public.plantings (id, season_id, user_id, crop_id) values
+  ('33333333-3333-3333-3333-333333333333', '22222222-2222-2222-2222-222222222223', '11111111-1111-1111-1111-111111111111', 'lettuce'),
+  ('33333333-3333-3333-3333-333333333334', '22222222-2222-2222-2222-222222222223', '11111111-1111-1111-1111-111111111111', 'potato');

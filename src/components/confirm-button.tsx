@@ -12,40 +12,42 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 
-type ConfirmButtonProps = {
+type ConfirmDialogProps = {
+  /** The button that opens the dialog; without one, `open` opens it, e.g. from a menu. */
+  trigger?: ReactNode;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   title: ReactNode;
   description: ReactNode;
   /** Text on the button that confirms, e.g. "Ta bort". */
   action: string;
+  destructive?: boolean;
+  onPendingChange?: (pending: boolean) => void;
   /** The dialog stays open, its buttons locked, until the returned promise settles. */
   onConfirm: () => unknown;
-  variant?: ComponentProps<typeof Button>["variant"];
-  size?: ComponentProps<typeof Button>["size"];
-  disabled?: boolean;
-  children: ReactNode;
 };
 
-/** A button that asks for confirmation in a modal before it runs a destructive action. */
-export function ConfirmButton({
+/** Asks for confirmation in a modal before running an action. */
+export function ConfirmDialog({
+  trigger,
+  open,
+  onOpenChange,
   title,
   description,
   action,
+  destructive = true,
+  onPendingChange,
   onConfirm,
-  variant = "destructive-ghost",
-  size,
-  disabled,
-  children,
-}: ConfirmButtonProps) {
-  const [open, setOpen] = useState(false);
+}: ConfirmDialogProps) {
   const [pending, setPending] = useState(false);
+  const changePending = (next: boolean) => {
+    setPending(next);
+    onPendingChange?.(next);
+  };
 
   return (
-    <AlertDialog open={open} onOpenChange={(next) => !pending && setOpen(next)}>
-      <AlertDialogTrigger asChild>
-        <Button variant={variant} size={size} disabled={disabled || pending}>
-          {children}
-        </Button>
-      </AlertDialogTrigger>
+    <AlertDialog open={open} onOpenChange={(next) => !pending && onOpenChange(next)}>
+      {trigger && <AlertDialogTrigger asChild>{trigger}</AlertDialogTrigger>}
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>{title}</AlertDialogTitle>
@@ -54,18 +56,18 @@ export function ConfirmButton({
         <AlertDialogFooter>
           <AlertDialogCancel disabled={pending}>Avbryt</AlertDialogCancel>
           <AlertDialogAction
-            variant="destructive"
+            variant={destructive ? "destructive" : "default"}
             disabled={pending}
             onClick={(event) => {
               // Keep the dialog open until the action is done.
               event.preventDefault();
-              setPending(true);
+              changePending(true);
               void Promise.resolve()
                 .then(onConfirm)
                 .catch(() => {}) // the caller shows its own error
                 .finally(() => {
-                  setPending(false);
-                  setOpen(false);
+                  changePending(false);
+                  onOpenChange(false);
                 });
             }}
           >
@@ -74,5 +76,37 @@ export function ConfirmButton({
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
+  );
+}
+
+type ConfirmButtonProps = Pick<ConfirmDialogProps, "title" | "description" | "action" | "destructive" | "onConfirm"> & {
+  variant?: ComponentProps<typeof Button>["variant"];
+  size?: ComponentProps<typeof Button>["size"];
+  disabled?: boolean;
+  children: ReactNode;
+};
+
+/** A button that asks for confirmation in a modal before it runs a destructive action. */
+export function ConfirmButton({
+  variant = "destructive-ghost",
+  size,
+  disabled,
+  children,
+  ...dialog
+}: ConfirmButtonProps) {
+  const [open, setOpen] = useState(false);
+  const [pending, setPending] = useState(false);
+  return (
+    <ConfirmDialog
+      {...dialog}
+      trigger={
+        <Button variant={variant} size={size} disabled={disabled || pending}>
+          {children}
+        </Button>
+      }
+      open={open}
+      onOpenChange={setOpen}
+      onPendingChange={setPending}
+    />
   );
 }

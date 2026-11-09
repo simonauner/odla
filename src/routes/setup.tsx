@@ -91,18 +91,29 @@ export function SetupPage() {
   const [zone, setZone] = useState<Zone | null>(null);
   const [kind, setKind] = useState<GardenKind>("open");
   const [lastFrost, setLastFrost] = useState<string | null>(null);
-  const [cropIds, setCropIds] = useState<string[]>([]);
+  // null until the user changes them: then we suggest last year's crops at the place.
+  const [cropIds, setCropIds] = useState<string[] | null>(null);
 
   if (gardens.isPending || seasons.isPending) return <p className="text-muted-foreground">Laddar…</p>;
   if (gardens.isError || seasons.isError) return <ErrorAlert>Kunde inte hämta dina uppgifter.</ErrorAlert>;
 
   // A place has at most one list per year, so only places without one this year can be picked.
-  const free = gardens.data.filter((g) => !seasons.data.some((s) => s.garden.id === g.id));
+  const free = gardens.data.filter((g) => !seasons.data.some((s) => s.garden.id === g.id && s.year === seasonYear));
   const choice = gardenChoice ?? free[0]?.id ?? NEW;
   const existing = free.find((g) => g.id === choice);
   const place = existing ?? (zone === null ? null : { zone, kind });
   const guess = place ? guessLastFrost(place.zone, seasonYear, place.kind) : null;
-  const frost = lastFrost ?? guess;
+  // Last year's season at the place, if any, to start from the same crops and frost date.
+  const previous = existing && seasons.data.findLast((s) => s.garden.id === existing.id && s.year < seasonYear);
+  const previousFrost = previous && previous.last_frost ? `${seasonYear}${previous.last_frost.slice(4)}` : null;
+  const frost = lastFrost ?? previousFrost ?? guess;
+  const crops = cropIds ?? previous?.plantings.map((p) => p.crop_id) ?? [];
+
+  function chooseGarden(id: string) {
+    setGardenChoice(id);
+    setLastFrost(null);
+    setCropIds(null);
+  }
   const placeReady = !!existing || (name.trim() !== "" && zone !== null);
 
   function submit() {
@@ -111,7 +122,7 @@ export function SetupPage() {
       {
         garden: existing ? { id: existing.id } : { name: name.trim(), zone: place.zone, kind: place.kind },
         lastFrost: frost,
-        cropIds,
+        cropIds: crops,
       },
       { onSuccess: () => navigate({ to: "/" }) },
     );
@@ -127,7 +138,7 @@ export function SetupPage() {
         <section className="space-y-4">
           <h2 className="text-lg font-semibold">Var ska du odla?</h2>
           {free.length > 0 && (
-            <RadioGroup value={choice} onValueChange={setGardenChoice} className="grid gap-2 sm:grid-cols-2">
+            <RadioGroup value={choice} onValueChange={chooseGarden} className="grid gap-2 sm:grid-cols-2">
               {free.map((g) => (
                 <Label key={g.id} className={radioCard}>
                   <RadioGroupItem value={g.id} className="mt-0.5" />
@@ -225,9 +236,10 @@ export function SetupPage() {
         <section className="space-y-4">
           <h2 className="text-lg font-semibold">När är det frostfritt?</h2>
           <p className="text-sm text-muted-foreground">
-            Vi gissar {formatDay(guess)} utifrån zonen
-            {place?.kind === "greenhouse" ? " och att det är ett växthus" : ""}. {frostHint(frost)} Ändra datumet om du
-            vet bättre för platsen, det går också att flytta det senare.
+            {previous && previousFrost
+              ? `Förra året satte du frostfritt från ${formatDay(previous.last_frost!)}, så vi har fyllt i samma dag. Vår gissning utifrån zonen är ${formatDay(guess)}.`
+              : `Vi gissar ${formatDay(guess)} utifrån zonen${place?.kind === "greenhouse" ? " och att det är ett växthus" : ""}.`}{" "}
+            {frostHint(frost)} Ändra datumet om du vet bättre för platsen, det går också att flytta det senare.
           </p>
           <div className="space-y-1">
             <Label htmlFor="last-frost">Frostfritt från</Label>
@@ -255,17 +267,20 @@ export function SetupPage() {
       {step === 3 && place && (
         <section className="space-y-4">
           <h2 className="text-lg font-semibold">Vad vill du odla här {seasonYear}?</h2>
+          {previous && cropIds === null && (
+            <p className="text-sm text-muted-foreground">Vi har valt det du odlade här {previous.year}.</p>
+          )}
           <CropToggles
             zone={place.zone}
             kind={place.kind}
-            isSelected={(id) => cropIds.includes(id)}
-            onToggle={(id) => setCropIds(cropIds.includes(id) ? cropIds.filter((c) => c !== id) : [...cropIds, id])}
+            isSelected={(id) => crops.includes(id)}
+            onToggle={(id) => setCropIds(crops.includes(id) ? crops.filter((c) => c !== id) : [...crops, id])}
           />
           <div className="flex gap-2">
             <Button variant="outline" size="lg" disabled={create.isPending} onClick={() => setStep(2)}>
               Tillbaka
             </Button>
-            <Button size="lg" disabled={cropIds.length === 0 || create.isPending} onClick={submit}>
+            <Button size="lg" disabled={crops.length === 0 || create.isPending} onClick={submit}>
               Skapa plan
             </Button>
           </div>

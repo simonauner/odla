@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { addDays, startOfWeek } from "@shared/dates";
 import { tasksBetween } from "@shared/plan";
-import { planSeason, type SeasonTask } from "@shared/season";
+import { planSeason, shouldAskToClose, type SeasonTask } from "@shared/season";
 import type { TaskKind } from "@shared/crops/types";
 import { guessLastFrost } from "@shared/zones";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -27,7 +27,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatDay, locale } from "@/lib/format";
-import { seasonYear, useLogTask, useSeasons } from "@/lib/garden";
+import { useLogTask, useSeasons, useUpdateSeason, type Season } from "@/lib/garden";
 import { cn } from "@/lib/utils";
 
 /** A task, with the place's name when the user grows in more than one place. */
@@ -180,6 +180,48 @@ function TaskList({ tasks }: { tasks: Task[] }) {
   );
 }
 
+/** Asks whether to close a season that is done or past 1 October, or to be reminded later. */
+function ClosePrompt({ season, allDone, today }: { season: Season; allDone: boolean; today: string }) {
+  const update = useUpdateSeason();
+  return (
+    <Card size="sm">
+      <CardHeader>
+        <CardTitle>
+          Avsluta säsong {season.year} på {season.garden.name}?
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <p className="text-muted-foreground">
+          {allDone ? "Alla uppgifter är klara." : "Säsongen lider mot sitt slut."} När du avslutar den försvinner den ur
+          planen. Det du har bockat av och antecknat sparas.
+        </p>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button disabled={update.isPending} onClick={() => update.mutate({ seasonId: season.id, closed: true })}>
+            Avsluta säsongen
+          </Button>
+          <span className="text-sm text-muted-foreground">eller påminn mig om</span>
+          {[1, 2, 4].map((weeks) => (
+            <Button
+              key={weeks}
+              variant="outline"
+              size="sm"
+              disabled={update.isPending}
+              onClick={() => update.mutate({ seasonId: season.id, remindOn: addDays(today, weeks * 7) })}
+            >
+              {weeks} {weeks === 1 ? "vecka" : "veckor"}
+            </Button>
+          ))}
+        </div>
+        {update.isError && (
+          <Alert variant="destructive">
+            <AlertDescription>Kunde inte spara.</AlertDescription>
+          </Alert>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 export function PlanPage() {
   const seasons = useSeasons();
 
@@ -190,7 +232,9 @@ export function PlanPage() {
         <AlertDescription>Kunde inte hämta planen.</AlertDescription>
       </Alert>
     );
-  if (!seasons.data.some((s) => s.plantings.length > 0)) {
+  // Seasons stay in the plan until the user closes them, also after the year has turned.
+  const open = seasons.data.filter((s) => !s.closed_at);
+  if (!open.some((s) => s.plantings.length > 0)) {
     return (
       <section className="space-y-4 rounded-3xl bg-secondary p-6 text-secondary-foreground sm:p-8">
         <Sprout aria-hidden className="size-10" />
@@ -205,18 +249,23 @@ export function PlanPage() {
     );
   }
 
-  const several = seasons.data.length > 1;
-  const tasks: Task[] = seasons.data
-    .flatMap((s) =>
-      planSeason(
-        s.garden.zone,
-        s.year,
-        s.plantings,
-        s.last_frost ?? guessLastFrost(s.garden.zone, s.year, s.garden.kind),
-      ).map((t) => (several ? { ...t, place: s.garden.name } : t)),
-    )
-    .toSorted((a, b) => a.start.localeCompare(b.start) || a.key.localeCompare(b.key));
   const today = localToday();
+  const several = open.length > 1;
+  const planned = open.map((s) => ({
+    season: s,
+    tasks: planSeason(
+      s.garden.zone,
+      s.year,
+      s.plantings,
+      s.last_frost ?? guessLastFrost(s.garden.zone, s.year, s.garden.kind),
+    ),
+  }));
+  const toClose = planned.filter((p) => shouldAskToClose(p.season, p.tasks, today));
+  const tasks: Task[] = planned
+    .flatMap((p) => p.tasks.map((t) => (several ? { ...t, place: p.season.garden.name } : t)))
+    .toSorted((a, b) => a.start.localeCompare(b.start) || a.key.localeCompare(b.key));
+  const years = [...new Set(open.map((s) => s.year))];
+  const seasonLabel = `Säsong ${years.join(" och ")}`;
   const monday = startOfWeek(today);
   const sunday = addDays(monday, 6);
   // Den här veckan, plus missade uppgifter som inte är avbockade.
@@ -242,14 +291,14 @@ export function PlanPage() {
         </p>
         <div className="mt-6 max-w-sm">
           <div className="mb-1.5 flex justify-between text-sm font-medium">
-            <span>Säsong {seasonYear}</span>
+            <span>{seasonLabel}</span>
             <span>
               {doneCount} av {tasks.length} klara
             </span>
           </div>
           <div
             role="progressbar"
-            aria-label={`Säsong ${seasonYear}`}
+            aria-label={seasonLabel}
             aria-valuemin={0}
             aria-valuemax={tasks.length}
             aria-valuenow={doneCount}
@@ -259,6 +308,10 @@ export function PlanPage() {
           </div>
         </div>
       </section>
+
+      {toClose.map((p) => (
+        <ClosePrompt key={p.season.id} season={p.season} allDone={p.tasks.every((t) => t.log)} today={today} />
+      ))}
 
       <section>
         <h2 className="mb-3 flex items-center gap-2 font-heading text-2xl font-semibold">
@@ -276,7 +329,7 @@ export function PlanPage() {
       </section>
 
       <section>
-        <h2 className="mb-4 font-heading text-2xl font-semibold">Årsplan {seasonYear}</h2>
+        <h2 className="mb-4 font-heading text-2xl font-semibold">Årsplan {years.join(" och ")}</h2>
         <ol className="space-y-8 border-l-2 border-border pl-6">
           {[...byMonth].map(([month, monthTasks]) => (
             <li key={month} className="relative">
@@ -289,6 +342,7 @@ export function PlanPage() {
               />
               <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                 {monthFmt.format(new Date(`${month}-15T12:00:00Z`))}
+                {years.length > 1 && ` ${month.slice(0, 4)}`}
                 {month === thisMonth && <Badge variant="sun">Nu</Badge>}
               </h3>
               <TaskList tasks={monthTasks} />
