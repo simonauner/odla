@@ -6,10 +6,16 @@ const rootRoute = createRootRoute({
   component: () => (
     <div className="mx-auto max-w-3xl px-4 py-6">
       <header className="mb-8 flex items-baseline justify-between">
-        <Link to="/" className="text-2xl font-semibold text-leaf-700">Odla</Link>
+        <Link to="/" className="text-2xl font-semibold text-leaf-700">
+          Odla
+        </Link>
         <nav className="flex gap-4 text-sm">
-          <Link to="/" className="[&.active]:font-semibold">Min plan</Link>
-          <Link to="/setup" className="[&.active]:font-semibold">Zon och grödor</Link>
+          <Link to="/" className="[&.active]:font-semibold">
+            Min plan
+          </Link>
+          <Link to="/setup" className="[&.active]:font-semibold">
+            Zon och grödor
+          </Link>
         </nav>
       </header>
       <Outlet />

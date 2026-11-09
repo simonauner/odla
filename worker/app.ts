@@ -24,7 +24,7 @@ app.get("/plan", (c) => {
 
   const tasks = crops
     .flatMap((crop) => planCrop({ crop: crop!, zone: zone as Zone, year }))
-    .sort((a, b) => a.start.localeCompare(b.start) || a.key.localeCompare(b.key));
+    .toSorted((a, b) => a.start.localeCompare(b.start) || a.key.localeCompare(b.key));
   return c.json({ zone, year, tasks });
 });
 

@@ -35,7 +35,11 @@ export function PlanPage() {
   if (!ready) {
     return (
       <p>
-        Börja med att <Link to="/setup" className="text-leaf-700 underline">välja zon och grödor</Link>.
+        Börja med att{" "}
+        <Link to="/setup" className="text-leaf-700 underline">
+          välja zon och grödor
+        </Link>
+        .
       </p>
     );
   }
@@ -43,6 +47,7 @@ export function PlanPage() {
   if (plan.isError) return <p>Kunde inte hämta planen.</p>;
 
   const tasks = plan.data.tasks;
+  // oxlint-disable-next-line react/purity -- "idag" ska läsas om vid varje render
   const monday = startOfWeek(new Date().toISOString().slice(0, 10));
   const thisWeek = tasksBetween(tasks, monday, addDays(monday, 6));
   const upcoming = tasks.filter((t) => t.start > addDays(monday, 6)).slice(0, 3);
@@ -54,11 +59,19 @@ export function PlanPage() {
       <section>
         <h2 className="mb-3 text-lg font-semibold">Att göra den här veckan</h2>
         {thisWeek.length > 0 ? (
-          <ul className="space-y-2">{thisWeek.map((t) => <TaskRow key={t.key} task={t} />)}</ul>
+          <ul className="space-y-2">
+            {thisWeek.map((t) => (
+              <TaskRow key={t.key} task={t} />
+            ))}
+          </ul>
         ) : (
           <>
             <p className="mb-3 text-stone-500">Inget att göra just nu. Härnäst:</p>
-            <ul className="space-y-2">{upcoming.map((t) => <TaskRow key={t.key} task={t} />)}</ul>
+            <ul className="space-y-2">
+              {upcoming.map((t) => (
+                <TaskRow key={t.key} task={t} />
+              ))}
+            </ul>
           </>
         )}
       </section>
@@ -71,7 +84,11 @@ export function PlanPage() {
               <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-stone-500">
                 {monthFmt.format(new Date(`${month}-15T12:00:00Z`))}
               </h3>
-              <ul className="space-y-2">{monthTasks.map((t) => <TaskRow key={t.key} task={t} />)}</ul>
+              <ul className="space-y-2">
+                {monthTasks.map((t) => (
+                  <TaskRow key={t.key} task={t} />
+                ))}
+              </ul>
             </div>
           ))}
         </div>

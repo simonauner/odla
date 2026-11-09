@@ -17,10 +17,28 @@ export interface ZoneInfo {
  * och användarens egna erfarenheter; lokalklimatet kan skilja flera veckor.
  */
 export const ZONES: readonly ZoneInfo[] = [
-  { zone: 1, label: "Zon I", lastFrost: [5, 1], firstFrost: [10, 25], examples: "Skåne, Blekinge kust, Öland, Gotland" },
+  {
+    zone: 1,
+    label: "Zon I",
+    lastFrost: [5, 1],
+    firstFrost: [10, 25],
+    examples: "Skåne, Blekinge kust, Öland, Gotland",
+  },
   { zone: 2, label: "Zon II", lastFrost: [5, 10], firstFrost: [10, 15], examples: "Halland, västkusten, Kalmar" },
-  { zone: 3, label: "Zon III", lastFrost: [5, 15], firstFrost: [10, 5], examples: "Stockholm, Mälardalen, Östergötland" },
-  { zone: 4, label: "Zon IV", lastFrost: [5, 20], firstFrost: [9, 25], examples: "Västmanland, Värmland, inre Götaland" },
+  {
+    zone: 3,
+    label: "Zon III",
+    lastFrost: [5, 15],
+    firstFrost: [10, 5],
+    examples: "Stockholm, Mälardalen, Östergötland",
+  },
+  {
+    zone: 4,
+    label: "Zon IV",
+    lastFrost: [5, 20],
+    firstFrost: [9, 25],
+    examples: "Västmanland, Värmland, inre Götaland",
+  },
   { zone: 5, label: "Zon V", lastFrost: [5, 25], firstFrost: [9, 20], examples: "Gävleborg kust, Dalarna söder" },
   { zone: 6, label: "Zon VI", lastFrost: [6, 1], firstFrost: [9, 10], examples: "Norrlandskusten, Jämtland söder" },
   { zone: 7, label: "Zon VII", lastFrost: [6, 10], firstFrost: [9, 1], examples: "Inre Norrland, Norrbottens kust" },

@@ -11,10 +11,7 @@ export type TaskKind =
   | "clear";
 
 /** Vad ett steg räknas från: sista vårfrost, första höstfrost eller ett annat steg i samma gröda. */
-export type Anchor =
-  | { type: "last_frost" }
-  | { type: "first_frost" }
-  | { type: "step"; step: string };
+export type Anchor = { type: "last_frost" } | { type: "first_frost" } | { type: "step"; step: string };
 
 export interface CropStep {
   id: string;

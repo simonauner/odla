@@ -10,7 +10,11 @@ export interface GardenSettings {
 const KEY = "odla.garden";
 
 function load(): GardenSettings {
-  const fallback: GardenSettings = { zone: null, year: new Date().getFullYear() + (new Date().getMonth() >= 9 ? 1 : 0), crops: [] };
+  const fallback: GardenSettings = {
+    zone: null,
+    year: new Date().getFullYear() + (new Date().getMonth() >= 9 ? 1 : 0),
+    crops: [],
+  };
   try {
     const raw = localStorage.getItem(KEY);
     return raw ? { ...fallback, ...(JSON.parse(raw) as Partial<GardenSettings>) } : fallback;
