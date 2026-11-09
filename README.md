@@ -7,7 +7,7 @@ Planera, följ upp och utvärdera din odling. Du väljer odlingszon och vad du v
 - **Frontend:** React 19 + Vite + TanStack Router/Query + Tailwind + shadcn/ui (`src/`). Regler för färger och komponenter: [docs/design-system.md](docs/design-system.md)
 - **API:** Hono på Cloudflare Workers (`worker/`). Samma Worker serverar den statiska startsidan på `/`, appen på `/app` och `/api/*`
 - **Delad kod:** planmotor, zoner och grödmallar i TypeScript (`shared/`), som används av både webben och API:t
-- **Databas, inloggning och foton:** Supabase-projektet `haiidlamhbdgfugosykm` (eu-north-1, Stockholm). Migreringarna i `supabase/migrations/` är körda. Webben pratar direkt med Supabase via `supabase-js` med användarens session; RLS begränsar allt till egna rader. Den publika URL:en och publishable-nyckeln finns i `wrangler.jsonc` och `.env`; inga hemliga nycklar finns i repot
+- **Databas, inloggning och foton:** Supabase-projektet `haiidlamhbdgfugosykm` (eu-north-1, Stockholm). Migreringarna i `supabase/migrations/` körs mot produktion vid deploy. Webben pratar direkt med Supabase via `supabase-js` med användarens session; RLS begränsar allt till egna rader. Den publika URL:en och publishable-nyckeln finns i `wrangler.jsonc` och `.env`; inga hemliga nycklar finns i repot
 
 ## Kom igång
 
@@ -16,10 +16,21 @@ npm install
 npm run dev      # http://localhost:5173 – Vite + Workers-runtime lokalt
 npm test         # vitest: planmotor och API
 npm run build    # typkontroll + bygge till dist/
-npm run deploy   # bygger och driftsätter till Cloudflare (kräver `npx wrangler login`)
+npm run deploy   # manuell deploy till Cloudflare (kräver `npx wrangler login`); normalt sköter CI det
 ```
 
 Lokal Supabase med testdata (kräver Docker): `npm run db:start` och sedan `npm run dev:local`. Logga in som `agent@odla.test` / `odla-test-123`. Testdatan finns i `supabase/seed.sql`.
+
+## Driftsättning
+
+Varje push till `main` som klarar CI driftsätts av jobbet `deploy` i `.github/workflows/ci.yml`: först `supabase db push` mot produktionsdatabasen, sedan `npm run deploy` till Cloudflare Workers. Migreringar körs alltså innan den nya koden är ute, så de måste fungera med den gamla koden också (lägg till kolumner först, ta bort dem i en senare release).
+
+Jobbet behöver fyra secrets i GitHub (Settings → Secrets and variables → Actions):
+
+- `CLOUDFLARE_API_TOKEN`: API-token med mallen _Edit Cloudflare Workers_
+- `CLOUDFLARE_ACCOUNT_ID`: konto-id från Cloudflare-dashboarden
+- `SUPABASE_ACCESS_TOKEN`: personlig token från supabase.com/dashboard/account/tokens
+- `SUPABASE_DB_PASSWORD`: databaslösenordet för projektet `haiidlamhbdgfugosykm`
 
 ## Inloggning
 
