@@ -1,5 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Toggle } from "@/components/ui/toggle";
 import { api } from "@/lib/api";
 import { useGarden } from "@/lib/garden";
 
@@ -16,18 +21,25 @@ export function SetupPage() {
     <div className="space-y-8">
       <section>
         <h2 className="mb-1 text-lg font-semibold">Var odlar du?</h2>
-        <p className="mb-3 text-sm text-stone-500">Välj odlingszon. Karta och förslag utifrån din position kommer senare.</p>
-        <div className="grid gap-2 sm:grid-cols-2">
+        <p className="mb-3 text-sm text-muted-foreground">Välj odlingszon. Karta och förslag utifrån din position kommer senare.</p>
+        <RadioGroup
+          value={garden.zone === null ? "" : String(garden.zone)}
+          onValueChange={(v) => setGarden((g) => ({ ...g, zone: Number(v) }))}
+          className="grid gap-2 sm:grid-cols-2"
+        >
           {zones.data?.map((z) => (
-            <label key={z.zone} className="flex cursor-pointer gap-3 rounded-lg border border-stone-200 p-3 has-checked:border-leaf-600 has-checked:bg-leaf-50 dark:border-stone-800 dark:has-checked:bg-stone-900">
-              <input type="radio" name="zone" checked={garden.zone === z.zone} onChange={() => setGarden((g) => ({ ...g, zone: z.zone }))} />
+            <Label
+              key={z.zone}
+              className="cursor-pointer items-start gap-3 rounded-lg border p-3 font-normal has-data-checked:border-primary has-data-checked:bg-secondary"
+            >
+              <RadioGroupItem value={String(z.zone)} className="mt-0.5" />
               <span>
                 <span className="font-medium">{z.label}</span>
-                <span className="block text-xs text-stone-500">{z.examples}</span>
+                <span className="block text-xs text-muted-foreground">{z.examples}</span>
               </span>
-            </label>
+            </Label>
           ))}
-        </div>
+        </RadioGroup>
       </section>
 
       <section>
@@ -36,30 +48,29 @@ export function SetupPage() {
           {crops.data?.map((c) => {
             const outsideZone = garden.zone !== null && (garden.zone < c.zones.min || garden.zone > c.zones.max);
             return (
-              <button
+              <Toggle
                 key={c.id}
-                type="button"
-                onClick={() => toggleCrop(c.id)}
-                aria-pressed={garden.crops.includes(c.id)}
-                className="rounded-full border border-stone-300 px-4 py-1.5 aria-pressed:border-leaf-600 aria-pressed:bg-leaf-600 aria-pressed:text-white dark:border-stone-700"
+                variant="outline"
+                pressed={garden.crops.includes(c.id)}
+                onPressedChange={() => toggleCrop(c.id)}
+                className="rounded-full px-4"
                 title={outsideZone ? "Svårt i din zon utan växthus" : undefined}
               >
                 {c.name}
-                {outsideZone && " ⚠︎"}
-              </button>
+                {outsideZone && <Badge variant="warning">Växthus</Badge>}
+              </Toggle>
             );
           })}
         </div>
       </section>
 
-      <button
-        type="button"
+      <Button
+        size="lg"
         disabled={garden.zone === null || garden.crops.length === 0}
         onClick={() => navigate({ to: "/" })}
-        className="rounded-lg bg-leaf-600 px-5 py-2 font-medium text-white disabled:opacity-40"
       >
         Visa min plan
-      </button>
+      </Button>
     </div>
   );
 }

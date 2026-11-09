@@ -2,6 +2,8 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { addDays, startOfWeek } from "@shared/dates";
 import { tasksBetween, type PlannedTask } from "@shared/plan";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { api } from "@/lib/api";
 import { useGarden } from "@/lib/garden";
 
@@ -11,14 +13,16 @@ const fmt = (iso: string) => dateFmt.format(new Date(`${iso}T12:00:00Z`));
 
 function TaskRow({ task }: { task: PlannedTask }) {
   return (
-    <li className="rounded-lg border border-stone-200 bg-white p-3 dark:border-stone-800 dark:bg-stone-900">
-      <div className="flex justify-between gap-4">
-        <span className="font-medium">{task.title}</span>
-        <span className="shrink-0 text-sm text-stone-500">
-          {task.start === task.end ? fmt(task.start) : `${fmt(task.start)}–${fmt(task.end)}`}
-        </span>
-      </div>
-      {task.description && <p className="mt-1 text-sm text-stone-600 dark:text-stone-400">{task.description}</p>}
+    <li>
+      <Card size="sm">
+        <CardHeader>
+          <CardTitle>{task.title}</CardTitle>
+          <CardAction className="text-sm text-muted-foreground">
+            {task.start === task.end ? fmt(task.start) : `${fmt(task.start)}–${fmt(task.end)}`}
+          </CardAction>
+        </CardHeader>
+        {task.description && <CardContent className="text-muted-foreground">{task.description}</CardContent>}
+      </Card>
     </li>
   );
 }
@@ -35,12 +39,17 @@ export function PlanPage() {
   if (!ready) {
     return (
       <p>
-        Börja med att <Link to="/setup" className="text-leaf-700 underline">välja zon och grödor</Link>.
+        Börja med att <Link to="/setup" className="text-primary underline underline-offset-4">välja zon och grödor</Link>.
       </p>
     );
   }
-  if (plan.isPending) return <p>Räknar fram din plan…</p>;
-  if (plan.isError) return <p>Kunde inte hämta planen.</p>;
+  if (plan.isPending) return <p className="text-muted-foreground">Räknar fram din plan…</p>;
+  if (plan.isError)
+    return (
+      <Alert variant="destructive">
+        <AlertDescription>Kunde inte hämta planen.</AlertDescription>
+      </Alert>
+    );
 
   const tasks = plan.data.tasks;
   const monday = startOfWeek(new Date().toISOString().slice(0, 10));
@@ -57,7 +66,7 @@ export function PlanPage() {
           <ul className="space-y-2">{thisWeek.map((t) => <TaskRow key={t.key} task={t} />)}</ul>
         ) : (
           <>
-            <p className="mb-3 text-stone-500">Inget att göra just nu. Härnäst:</p>
+            <p className="mb-3 text-muted-foreground">Inget att göra just nu. Härnäst:</p>
             <ul className="space-y-2">{upcoming.map((t) => <TaskRow key={t.key} task={t} />)}</ul>
           </>
         )}
@@ -68,7 +77,7 @@ export function PlanPage() {
         <div className="space-y-6">
           {[...byMonth].map(([month, monthTasks]) => (
             <div key={month}>
-              <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-stone-500">
+              <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                 {monthFmt.format(new Date(`${month}-15T12:00:00Z`))}
               </h3>
               <ul className="space-y-2">{monthTasks.map((t) => <TaskRow key={t.key} task={t} />)}</ul>
