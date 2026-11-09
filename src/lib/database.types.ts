@@ -12,8 +12,15 @@ export type Database = {
         { id: string; display_name?: string | null; zone?: number | null; created_at?: string }
       >;
       seasons: Table<
-        { id: string; user_id: string; year: number; zone: number; created_at: string },
-        { id?: string; user_id: string; year: number; zone: number; created_at?: string }
+        { id: string; user_id: string; year: number; zone: number; last_frost: string | null; created_at: string },
+        {
+          id?: string;
+          user_id: string;
+          year: number;
+          zone: number;
+          last_frost?: string | null;
+          created_at?: string;
+        }
       >;
       plantings: Table<
         {

@@ -32,7 +32,12 @@ export function stepKeyOf(task: PlannedTask): string {
  * Hela säsongens plan för alla planteringar, där utförda steg (första förekomsten)
  * styr datumen för de steg som räknas från dem.
  */
-export function planSeason(zone: Zone, year: number, plantings: readonly SeasonPlanting[]): SeasonTask[] {
+export function planSeason(
+  zone: Zone,
+  year: number,
+  plantings: readonly SeasonPlanting[],
+  lastFrost?: IsoDate,
+): SeasonTask[] {
   return plantings
     .flatMap((planting) => {
       const crop = findCrop(planting.crop_id);
@@ -43,7 +48,7 @@ export function planSeason(zone: Zone, year: number, plantings: readonly SeasonP
         const [stepId, index] = log.step_key.split(":");
         if (log.status === "done" && index === "0" && stepId) actuals[stepId] = log.done_on;
       }
-      return planCrop({ crop, zone, year, actuals }).map((task): SeasonTask => {
+      return planCrop({ crop, zone, year, actuals, lastFrost }).map((task): SeasonTask => {
         const stepKey = stepKeyOf(task);
         return { ...task, key: `${planting.id}:${stepKey}`, plantingId: planting.id, stepKey, log: logs.get(stepKey) };
       });

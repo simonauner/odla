@@ -26,13 +26,12 @@ import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/componen
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { formatDay, locale } from "@/lib/format";
 import { seasonYear, useLogTask, useSeason } from "@/lib/garden";
 import { cn } from "@/lib/utils";
 
-const dateFmt = new Intl.DateTimeFormat("sv-SE", { day: "numeric", month: "short" });
-const monthFmt = new Intl.DateTimeFormat("sv-SE", { month: "long" });
-const longDateFmt = new Intl.DateTimeFormat("sv-SE", { weekday: "long", day: "numeric", month: "long" });
-const fmt = (iso: string) => dateFmt.format(new Date(`${iso}T12:00:00Z`));
+const monthFmt = new Intl.DateTimeFormat(locale, { month: "long" });
+const longDateFmt = new Intl.DateTimeFormat(locale, { weekday: "long", day: "numeric", month: "long" });
 
 function localToday(): string {
   const d = new Date();
@@ -103,10 +102,10 @@ function TaskRow({ task }: { task: SeasonTask }) {
           </CardTitle>
           <CardAction className="flex items-center gap-2 text-sm text-muted-foreground">
             {done
-              ? `Klart ${fmt(log!.done_on)}`
+              ? `Klart ${formatDay(log!.done_on)}`
               : task.start === task.end
-                ? fmt(task.start)
-                : `${fmt(task.start)}–${fmt(task.end)}`}
+                ? formatDay(task.start)
+                : `${formatDay(task.start)}–${formatDay(task.end)}`}
             <Button variant="ghost" size="sm" aria-expanded={open} aria-controls={id} onClick={() => setOpen(!open)}>
               {open ? "Stäng" : "Mer"}
             </Button>
@@ -202,7 +201,12 @@ export function PlanPage() {
     );
   }
 
-  const tasks = planSeason(season.data.zone as Zone, season.data.year, season.data.plantings);
+  const tasks = planSeason(
+    season.data.zone as Zone,
+    season.data.year,
+    season.data.plantings,
+    season.data.last_frost ?? undefined,
+  );
   const today = localToday();
   const monday = startOfWeek(today);
   const sunday = addDays(monday, 6);
