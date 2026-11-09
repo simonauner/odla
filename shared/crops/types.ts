@@ -1,6 +1,8 @@
 export type TaskKind =
   | "sow_indoor"
   | "pot_up"
+  | "thin"
+  | "hill"
   | "harden_off"
   | "plant_out"
   | "sow_outdoor"
