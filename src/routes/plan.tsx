@@ -1,42 +1,87 @@
-import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { addDays, startOfWeek } from "@shared/dates";
-import { tasksBetween, type PlannedTask } from "@shared/plan";
+import { tasksBetween } from "@shared/plan";
+import { planSeason, type SeasonTask } from "@shared/season";
+import type { Zone } from "@shared/zones";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { api } from "@/lib/api";
-import { useGarden } from "@/lib/garden";
+import { Checkbox } from "@/components/ui/checkbox";
+import { seasonYear, useSeason, useToggleTask } from "@/lib/garden";
 
 const dateFmt = new Intl.DateTimeFormat("sv-SE", { day: "numeric", month: "short" });
 const monthFmt = new Intl.DateTimeFormat("sv-SE", { month: "long" });
 const fmt = (iso: string) => dateFmt.format(new Date(`${iso}T12:00:00Z`));
 
-function TaskRow({ task }: { task: PlannedTask }) {
+function localToday(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+function TaskRow({ task }: { task: SeasonTask }) {
+  const toggle = useToggleTask();
+  const done = task.log?.status === "done";
   return (
     <li>
       <Card size="sm">
         <CardHeader>
-          <CardTitle>{task.title}</CardTitle>
+          <CardTitle className="flex items-center gap-3">
+            <Checkbox
+              aria-label={`${task.title} klart`}
+              checked={done}
+              disabled={toggle.isPending}
+              onCheckedChange={(checked) =>
+                toggle.mutate({
+                  plantingId: task.plantingId,
+                  stepKey: task.stepKey,
+                  done: checked === true,
+                  doneOn: localToday(),
+                })
+              }
+            />
+            <span className={done ? "text-muted-foreground line-through" : undefined}>{task.title}</span>
+          </CardTitle>
           <CardAction className="text-sm text-muted-foreground">
-            {task.start === task.end ? fmt(task.start) : `${fmt(task.start)}–${fmt(task.end)}`}
+            {done
+              ? `Klart ${fmt(task.log!.done_on)}`
+              : task.start === task.end
+                ? fmt(task.start)
+                : `${fmt(task.start)}–${fmt(task.end)}`}
           </CardAction>
         </CardHeader>
-        {task.description && <CardContent className="text-muted-foreground">{task.description}</CardContent>}
+        {task.description && !done && <CardContent className="text-muted-foreground">{task.description}</CardContent>}
+        {toggle.isError && (
+          <CardContent>
+            <Alert variant="destructive">
+              <AlertDescription>Kunde inte spara.</AlertDescription>
+            </Alert>
+          </CardContent>
+        )}
       </Card>
     </li>
   );
 }
 
-export function PlanPage() {
-  const [garden] = useGarden();
-  const ready = garden.zone !== null && garden.crops.length > 0;
-  const plan = useQuery({
-    queryKey: ["plan", garden.zone, garden.year, garden.crops],
-    queryFn: () => api.plan(garden.zone!, garden.year, garden.crops),
-    enabled: ready,
-  });
+function TaskList({ tasks }: { tasks: SeasonTask[] }) {
+  return (
+    <ul className="space-y-2">
+      {tasks.map((t) => (
+        <TaskRow key={t.key} task={t} />
+      ))}
+    </ul>
+  );
+}
 
-  if (!ready) {
+export function PlanPage() {
+  const season = useSeason();
+
+  if (season.isPending) return <p className="text-muted-foreground">Laddar din plan…</p>;
+  if (season.isError)
+    return (
+      <Alert variant="destructive">
+        <AlertDescription>Kunde inte hämta planen.</AlertDescription>
+      </Alert>
+    );
+  if (!season.data || season.data.plantings.length === 0) {
     return (
       <p>
         Börja med att{" "}
@@ -47,20 +92,14 @@ export function PlanPage() {
       </p>
     );
   }
-  if (plan.isPending) return <p className="text-muted-foreground">Räknar fram din plan…</p>;
-  if (plan.isError)
-    return (
-      <Alert variant="destructive">
-        <AlertDescription>Kunde inte hämta planen.</AlertDescription>
-      </Alert>
-    );
 
-  const tasks = plan.data.tasks;
-  // oxlint-disable-next-line react/purity -- "idag" ska läsas om vid varje render
-  const monday = startOfWeek(new Date().toISOString().slice(0, 10));
-  const thisWeek = tasksBetween(tasks, monday, addDays(monday, 6));
-  const upcoming = tasks.filter((t) => t.start > addDays(monday, 6)).slice(0, 3);
-
+  const tasks = planSeason(season.data.zone as Zone, season.data.year, season.data.plantings);
+  const today = localToday();
+  const monday = startOfWeek(today);
+  const sunday = addDays(monday, 6);
+  // Den här veckan, plus missade uppgifter som inte är avbockade.
+  const thisWeek = tasks.filter((t) => tasksBetween([t], monday, sunday).length > 0 || (!t.log && t.end < monday));
+  const upcoming = tasks.filter((t) => !t.log && t.start > sunday).slice(0, 3);
   const byMonth = Map.groupBy(tasks, (t) => t.start.slice(0, 7));
 
   return (
@@ -68,36 +107,24 @@ export function PlanPage() {
       <section>
         <h2 className="mb-3 text-lg font-semibold">Att göra den här veckan</h2>
         {thisWeek.length > 0 ? (
-          <ul className="space-y-2">
-            {thisWeek.map((t) => (
-              <TaskRow key={t.key} task={t} />
-            ))}
-          </ul>
+          <TaskList tasks={thisWeek} />
         ) : (
           <>
             <p className="mb-3 text-muted-foreground">Inget att göra just nu. Härnäst:</p>
-            <ul className="space-y-2">
-              {upcoming.map((t) => (
-                <TaskRow key={t.key} task={t} />
-              ))}
-            </ul>
+            <TaskList tasks={upcoming} />
           </>
         )}
       </section>
 
       <section>
-        <h2 className="mb-3 text-lg font-semibold">Årsplan {garden.year}</h2>
+        <h2 className="mb-3 text-lg font-semibold">Årsplan {seasonYear}</h2>
         <div className="space-y-6">
           {[...byMonth].map(([month, monthTasks]) => (
             <div key={month}>
               <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                 {monthFmt.format(new Date(`${month}-15T12:00:00Z`))}
               </h3>
-              <ul className="space-y-2">
-                {monthTasks.map((t) => (
-                  <TaskRow key={t.key} task={t} />
-                ))}
-              </ul>
+              <TaskList tasks={monthTasks} />
             </div>
           ))}
         </div>

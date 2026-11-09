@@ -7,7 +7,7 @@ Planera, följ upp och utvärdera din odling. Du väljer odlingszon och vad du v
 - **Frontend:** React 19 + Vite + TanStack Router/Query + Tailwind + shadcn/ui (`src/`). Regler för färger och komponenter: [docs/design-system.md](docs/design-system.md)
 - **API:** Hono på Cloudflare Workers (`worker/`). Samma Worker serverar SPA:n och `/api/*`
 - **Delad kod:** planmotor, zoner och grödmallar i TypeScript (`shared/`), som används av både webben och API:t
-- **Databas, inloggning och foton:** Supabase-projektet `haiidlamhbdgfugosykm` (eu-north-1, Stockholm). Migreringarna i `supabase/migrations/` är körda. Klientkoden är ännu inte inkopplad. Den publika URL:en och publishable-nyckeln finns i `wrangler.jsonc` och `.env`; inga hemliga nycklar finns i repot
+- **Databas, inloggning och foton:** Supabase-projektet `haiidlamhbdgfugosykm` (eu-north-1, Stockholm). Migreringarna i `supabase/migrations/` är körda. Webben pratar direkt med Supabase via `supabase-js` med användarens session; RLS begränsar allt till egna rader. Den publika URL:en och publishable-nyckeln finns i `wrangler.jsonc` och `.env`; inga hemliga nycklar finns i repot
 
 ## Kom igång
 
@@ -19,6 +19,12 @@ npm run build    # typkontroll + bygge till dist/
 npm run deploy   # bygger och driftsätter till Cloudflare (kräver `npx wrangler login`)
 ```
 
+## Inloggning
+
+E-post och lösenord via Supabase Auth (`src/lib/auth.tsx`, `src/routes/login.tsx`). Utloggade ser bara inloggningssidan. Zon, säsong, grödor och avbockade steg sparas i databasen (`src/lib/garden.ts`), och planen räknas fram i webbläsaren med `planSeason()` i `shared/season.ts`.
+
+I Supabase under **Authentication → URL Configuration** ska _Site URL_ vara appens adress, och `http://localhost:5173` ska finnas under _Redirect URLs_. Annars pekar bekräftelselänken i mejlet fel. Supabase inbyggda e-post skickar bara ett fåtal mejl i timmen. Koppla in egen SMTP, t.ex. Resend, före lansering.
+
 ## Planmotorn
 
 En gröda (`shared/crops/*.ts`) är en lista steg. Varje steg har ett **ankare** (sista vårfrost, första höstfrost eller ett annat steg) och ett **fönster** i dagar från ankaret. Steg kan upprepas, till exempel gödsling varje vecka eller successiv sådd av sallat. `planCrop()` i `shared/plan.ts` gör om mallen till daterade uppgifter för en zon och ett år.
@@ -29,8 +35,7 @@ Frostdatumen per zon i `shared/zones.ts` är grova schablonvärden och behöver 
 
 ## Nästa steg
 
-1. Inloggning (Supabase Auth). API:t verifierar JWT och sparar säsong, planteringar och utförda steg
-2. Bocka av uppgifter och flytta dem (`task_logs` → `actuals`)
-3. Foton per plantering (Supabase Storage, privat bucket `photos`)
-4. Zonförslag utifrån karta eller position
-5. Utvärdering efter säsongen; betalning (Stripe) för obegränsat antal foton och AI-analys
+1. Flytta uppgifter, hoppa över och skriva anteckningar (status `skipped` och `note` i `task_logs`)
+2. Foton per plantering (Supabase Storage, privat bucket `photos`)
+3. Zonförslag utifrån karta eller position
+4. Utvärdering efter säsongen; betalning (Stripe) för obegränsat antal foton och AI-analys
