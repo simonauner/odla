@@ -36,7 +36,8 @@ export function planCrop({ crop, zone, year, actuals = {} }: PlanInput): Planned
   function occurrences(step: CropStep, visiting: Set<string>): IsoDate[] {
     const cached = memo.get(step.id);
     if (cached) return cached;
-    if (visiting.has(step.id)) throw new Error(`Cirkulärt beroende i ${crop.id}: ${[...visiting, step.id].join(" → ")}`);
+    if (visiting.has(step.id))
+      throw new Error(`Cirkulärt beroende i ${crop.id}: ${[...visiting, step.id].join(" → ")}`);
     visiting.add(step.id);
 
     let anchors: IsoDate[];
@@ -94,7 +95,7 @@ export function planCrop({ crop, zone, year, actuals = {} }: PlanInput): Planned
     }),
   );
 
-  return tasks.sort((a, b) => a.start.localeCompare(b.start) || a.key.localeCompare(b.key));
+  return tasks.toSorted((a, b) => a.start.localeCompare(b.start) || a.key.localeCompare(b.key));
 }
 
 /** Uppgifter vars fönster överlappar perioden [from, to] (båda inklusive). */
