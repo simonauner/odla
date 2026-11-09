@@ -23,7 +23,7 @@ npm run deploy   # bygger och driftsätter till Cloudflare (kräver `npx wrangle
 
 E-post och lösenord via Supabase Auth (`src/lib/auth.tsx`, `src/routes/login.tsx`). Utloggade ser bara inloggningssidan. Zon, säsong, grödor och avbockade steg sparas i databasen (`src/lib/garden.ts`), och planen räknas fram i webbläsaren med `planSeason()` i `shared/season.ts`.
 
-I Supabase under **Authentication → URL Configuration** ska _Site URL_ vara appens adress, och `http://localhost:5173` ska finnas under _Redirect URLs_. Annars pekar bekräftelselänken i mejlet fel. Supabase inbyggda e-post skickar bara ett fåtal mejl i timmen. Koppla in egen SMTP, t.ex. Resend, före lansering.
+I Supabase under **Authentication → URL Configuration** ska _Site URL_ vara appens adress, och `http://localhost:*/**` ska finnas under _Redirect URLs_. Jokertecknet behövs eftersom parallella worktrees får varsin port (5173, 5174 …) via `autoPort` i `.claude/launch.json`. Annars pekar bekräftelselänken i mejlet fel. Supabase inbyggda e-post skickar bara ett fåtal mejl i timmen. Koppla in egen SMTP, t.ex. Resend, före lansering.
 
 ## Planmotorn
 
