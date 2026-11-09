@@ -2,6 +2,7 @@ import { Link, Outlet, createRootRoute, createRoute, createRouter } from "@tanst
 import { Sprout } from "lucide-react";
 import { useSession } from "./lib/auth";
 import { LoginPage } from "./routes/login";
+import { PlacePage } from "./routes/place";
 import { PlanPage } from "./routes/plan";
 import { ProfilePage } from "./routes/profile";
 import { SetupPage } from "./routes/setup";
@@ -23,7 +24,7 @@ function Root() {
               Min plan
             </Link>
             <Link to="/setup" className={navLink}>
-              Zon och grödor
+              Lägg till plats
             </Link>
             <Link to="/profil" className={navLink}>
               Profil
@@ -41,6 +42,7 @@ const rootRoute = createRootRoute({ component: Root });
 const routeTree = rootRoute.addChildren([
   createRoute({ getParentRoute: () => rootRoute, path: "/", component: PlanPage }),
   createRoute({ getParentRoute: () => rootRoute, path: "/setup", component: SetupPage }),
+  createRoute({ getParentRoute: () => rootRoute, path: "/plats/$seasonId", component: PlacePage }),
   createRoute({ getParentRoute: () => rootRoute, path: "/profil", component: ProfilePage }),
 ]);
 

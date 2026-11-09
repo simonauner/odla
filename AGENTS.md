@@ -14,4 +14,4 @@ npm run dev:local  # appen mot lokal Supabase (eller preview "odla-local" i .cla
 npm run db:reset   # nollställer databasen till seed-datan
 ```
 
-Logga in som `agent@odla.test` / `odla-test-123` (zon 3, tomat och sallat, tomatsådden avbockad). Studio finns på http://127.0.0.1:54323. Ny testdata läggs i `supabase/seed.sql`.
+Logga in som `agent@odla.test` / `odla-test-123` (odlingsplatsen Hemma i zon 3 med tomat och sallat, tomatsådden avbockad, och Lantstället i zon 6 utan plan). Studio finns på http://127.0.0.1:54323. Ny testdata läggs i `supabase/seed.sql`.
