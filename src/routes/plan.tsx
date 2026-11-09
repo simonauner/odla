@@ -1,12 +1,17 @@
+import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { addDays, startOfWeek } from "@shared/dates";
 import { tasksBetween } from "@shared/plan";
 import { planSeason, type SeasonTask } from "@shared/season";
 import type { Zone } from "@shared/zones";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { seasonYear, useSeason, useToggleTask } from "@/lib/garden";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { seasonYear, useLogTask, useSeason } from "@/lib/garden";
 
 const dateFmt = new Intl.DateTimeFormat("sv-SE", { day: "numeric", month: "short" });
 const monthFmt = new Intl.DateTimeFormat("sv-SE", { month: "long" });
@@ -18,8 +23,24 @@ function localToday(): string {
 }
 
 function TaskRow({ task }: { task: SeasonTask }) {
-  const toggle = useToggleTask();
-  const done = task.log?.status === "done";
+  const save = useLogTask();
+  const [open, setOpen] = useState(false);
+  const log = task.log;
+  const done = log?.status === "done";
+  const skipped = log?.status === "skipped";
+  const id = `task-${task.key}`;
+  const ids = { plantingId: task.plantingId, stepKey: task.stepKey };
+
+  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const form = new FormData(e.currentTarget);
+    const status = (e.nativeEvent as SubmitEvent).submitter?.getAttribute("value") === "skipped" ? "skipped" : "done";
+    save.mutate(
+      { ...ids, log: { status, doneOn: String(form.get("date")) || localToday(), note: String(form.get("note")) } },
+      { onSuccess: () => setOpen(false) },
+    );
+  }
+
   return (
     <li>
       <Card size="sm">
@@ -28,28 +49,72 @@ function TaskRow({ task }: { task: SeasonTask }) {
             <Checkbox
               aria-label={`${task.title} klart`}
               checked={done}
-              disabled={toggle.isPending}
+              disabled={save.isPending}
               onCheckedChange={(checked) =>
-                toggle.mutate({
-                  plantingId: task.plantingId,
-                  stepKey: task.stepKey,
-                  done: checked === true,
-                  doneOn: localToday(),
+                save.mutate({
+                  ...ids,
+                  log: checked === true ? { status: "done", doneOn: localToday(), note: log?.note ?? undefined } : null,
                 })
               }
             />
-            <span className={done ? "text-muted-foreground line-through" : undefined}>{task.title}</span>
+            <span className={log ? "text-muted-foreground line-through" : undefined}>{task.title}</span>
+            {skipped && <Badge variant="secondary">Överhoppad</Badge>}
           </CardTitle>
-          <CardAction className="text-sm text-muted-foreground">
+          <CardAction className="flex items-center gap-2 text-sm text-muted-foreground">
             {done
-              ? `Klart ${fmt(task.log!.done_on)}`
+              ? `Klart ${fmt(log!.done_on)}`
               : task.start === task.end
                 ? fmt(task.start)
                 : `${fmt(task.start)}–${fmt(task.end)}`}
+            <Button variant="ghost" size="sm" aria-expanded={open} aria-controls={id} onClick={() => setOpen(!open)}>
+              {open ? "Stäng" : "Mer"}
+            </Button>
           </CardAction>
         </CardHeader>
-        {task.description && !done && <CardContent className="text-muted-foreground">{task.description}</CardContent>}
-        {toggle.isError && (
+        {task.description && !log && !open && (
+          <CardContent className="text-muted-foreground">{task.description}</CardContent>
+        )}
+        {log?.note && !open && <CardContent>{log.note}</CardContent>}
+        {open && (
+          <CardContent>
+            <form id={id} onSubmit={onSubmit} className="space-y-3">
+              <div className="grid gap-3 sm:grid-cols-[auto_1fr]">
+                <div className="space-y-1">
+                  <Label htmlFor={`${id}-date`}>Datum</Label>
+                  <Input id={`${id}-date`} name="date" type="date" defaultValue={log?.done_on ?? localToday()} />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor={`${id}-note`}>Anteckning</Label>
+                  <Input
+                    id={`${id}-note`}
+                    name="note"
+                    defaultValue={log?.note ?? ""}
+                    placeholder="Sort, antal, väder…"
+                  />
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button type="submit" variant="secondary" value="done" disabled={save.isPending}>
+                  Spara som klart
+                </Button>
+                <Button type="submit" variant="outline" value="skipped" disabled={save.isPending}>
+                  Hoppa över
+                </Button>
+                {log && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    disabled={save.isPending}
+                    onClick={() => save.mutate({ ...ids, log: null }, { onSuccess: () => setOpen(false) })}
+                  >
+                    Ångra
+                  </Button>
+                )}
+              </div>
+            </form>
+          </CardContent>
+        )}
+        {save.isError && (
           <CardContent>
             <Alert variant="destructive">
               <AlertDescription>Kunde inte spara.</AlertDescription>

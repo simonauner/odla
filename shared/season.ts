@@ -7,6 +7,7 @@ export interface LoggedStep {
   step_key: string;
   status: string;
   done_on: IsoDate;
+  note?: string | null;
 }
 
 export interface SeasonPlanting {
