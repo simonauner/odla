@@ -7,7 +7,7 @@ Planera, följ upp och utvärdera din odling. Du väljer odlingszon och vad du v
 - **Frontend:** React 19 + Vite + TanStack Router/Query + Tailwind (`src/`)
 - **API:** Hono på Cloudflare Workers (`worker/`). Samma Worker serverar SPA:n och `/api/*`
 - **Delad kod:** planmotor, zoner och grödmallar i TypeScript (`shared/`), som används av både webben och API:t
-- **Databas, inloggning och foton:** Supabase (`supabase/migrations/`). Ännu inte inkopplat i koden
+- **Databas, inloggning och foton:** Supabase-projektet `haiidlamhbdgfugosykm` (eu-north-1, Stockholm). Migreringarna i `supabase/migrations/` är körda. Klientkoden är ännu inte inkopplad. Den publika URL:en och publishable-nyckeln finns i `wrangler.jsonc` och `.env`; inga hemliga nycklar finns i repot
 
 ## Kom igång
 
@@ -29,9 +29,8 @@ Frostdatumen per zon i `shared/zones.ts` är grova schablonvärden och behöver 
 
 ## Nästa steg
 
-1. Nytt Supabase-projekt (eu-north-1/Stockholm), kör migreringen och lägg in `SUPABASE_URL` och den publika nyckeln
-2. Inloggning (Supabase Auth). API:t verifierar JWT och sparar säsong, planteringar och utförda steg
-3. Bocka av uppgifter och flytta dem (`task_logs` → `actuals`)
-4. Foton per plantering (Supabase Storage, privat bucket `photos`)
-5. Zonförslag utifrån karta eller position
-6. Utvärdering efter säsongen; betalning (Stripe) för obegränsat antal foton och AI-analys
+1. Inloggning (Supabase Auth). API:t verifierar JWT och sparar säsong, planteringar och utförda steg
+2. Bocka av uppgifter och flytta dem (`task_logs` → `actuals`)
+3. Foton per plantering (Supabase Storage, privat bucket `photos`)
+4. Zonförslag utifrån karta eller position
+5. Utvärdering efter säsongen; betalning (Stripe) för obegränsat antal foton och AI-analys

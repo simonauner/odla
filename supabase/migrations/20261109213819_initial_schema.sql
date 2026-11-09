@@ -117,6 +117,12 @@ create policy "own evaluations" on public.evaluations
     and exists (select 1 from public.plantings p where p.id = planting_id and p.user_id = (select auth.uid()))
   );
 
+-- Data API: tabellerna exponeras uttryckligen (automatisk exponering är avslagen).
+-- Bara inloggade användare, aldrig anon; RLS ovan begränsar till egna rader.
+revoke all on public.profiles, public.seasons, public.plantings, public.task_logs, public.photos, public.evaluations from anon, authenticated;
+grant select, update (display_name, zone) on public.profiles to authenticated;
+grant select, insert, update, delete on public.seasons, public.plantings, public.task_logs, public.photos, public.evaluations to authenticated;
+
 -- Profil skapas automatiskt vid registrering.
 create function public.handle_new_user()
 returns trigger
@@ -129,6 +135,8 @@ begin
   return new;
 end;
 $$;
+
+revoke execute on function public.handle_new_user() from public, anon, authenticated;
 
 create trigger on_auth_user_created
   after insert on auth.users
