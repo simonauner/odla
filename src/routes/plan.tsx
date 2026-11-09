@@ -29,7 +29,6 @@ import { Label } from "@/components/ui/label";
 import { formatDay, locale } from "@/lib/format";
 import { seasonYear, useLogTask, useSeasons } from "@/lib/garden";
 import { cn } from "@/lib/utils";
-import { placeLabel } from "./setup";
 
 /** A task, with the place's name when the user grows in more than one place. */
 type Task = SeasonTask & { place?: string };
@@ -274,34 +273,6 @@ export function PlanPage() {
             <TaskList tasks={upcoming} />
           </>
         )}
-      </section>
-
-      <section>
-        <h2 className="mb-3 font-heading text-2xl font-semibold">Odlingsplatser</h2>
-        <ul className="grid gap-2 sm:grid-cols-2">
-          {seasons.data.map((s) => (
-            <li key={s.id}>
-              <Card size="sm">
-                <CardHeader>
-                  <CardTitle>{s.garden.name}</CardTitle>
-                  <CardAction>
-                    <Button asChild variant="ghost" size="sm">
-                      <Link to="/plats/$seasonId" params={{ seasonId: s.id }}>
-                        Ändra
-                      </Link>
-                    </Button>
-                  </CardAction>
-                </CardHeader>
-                <CardContent className="text-muted-foreground">
-                  {placeLabel(s.garden)} · {s.plantings.length} {s.plantings.length === 1 ? "gröda" : "grödor"}
-                </CardContent>
-              </Card>
-            </li>
-          ))}
-        </ul>
-        <Button asChild variant="outline" className="mt-3">
-          <Link to="/setup">Lägg till plats</Link>
-        </Button>
       </section>
 
       <section>
