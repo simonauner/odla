@@ -1,9 +1,8 @@
 import { Link, Outlet, createRootRoute, createRoute, createRouter } from "@tanstack/react-router";
-import { Button } from "@/components/ui/button";
 import { useSession } from "./lib/auth";
-import { supabase } from "./lib/supabase";
 import { LoginPage } from "./routes/login";
 import { PlanPage } from "./routes/plan";
+import { ProfilePage } from "./routes/profile";
 import { SetupPage } from "./routes/setup";
 
 const navLink = "hover:text-foreground [&.active]:font-semibold [&.active]:text-foreground";
@@ -24,9 +23,9 @@ function Root() {
             <Link to="/setup" className={navLink}>
               Zon och grödor
             </Link>
-            <Button variant="ghost" size="sm" onClick={() => supabase.auth.signOut()}>
-              Logga ut
-            </Button>
+            <Link to="/profil" className={navLink}>
+              Profil
+            </Link>
           </nav>
         )}
       </header>
@@ -40,6 +39,7 @@ const rootRoute = createRootRoute({ component: Root });
 const routeTree = rootRoute.addChildren([
   createRoute({ getParentRoute: () => rootRoute, path: "/", component: PlanPage }),
   createRoute({ getParentRoute: () => rootRoute, path: "/setup", component: SetupPage }),
+  createRoute({ getParentRoute: () => rootRoute, path: "/profil", component: ProfilePage }),
 ]);
 
 export const router = createRouter({ routeTree });
