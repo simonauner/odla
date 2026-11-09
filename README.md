@@ -19,6 +19,8 @@ npm run build    # typkontroll + bygge till dist/
 npm run deploy   # bygger och driftsätter till Cloudflare (kräver `npx wrangler login`)
 ```
 
+Lokal Supabase med testdata (kräver Docker): `npm run db:start` och sedan `npm run dev:local`. Logga in som `agent@odla.test` / `odla-test-123`. Testdatan finns i `supabase/seed.sql`.
+
 ## Inloggning
 
 E-post och lösenord via Supabase Auth (`src/lib/auth.tsx`, `src/routes/login.tsx`). Utloggade ser bara inloggningssidan. Zon, säsong, grödor och avbockade steg sparas i databasen (`src/lib/garden.ts`), och planen räknas fram i webbläsaren med `planSeason()` i `shared/season.ts`.
