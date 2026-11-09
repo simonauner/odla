@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabase";
 
 export function ProfilePage() {
   const session = useSession();
-  // shortcut: språk och enheter är fasta, gör dem valbara när fler språk finns.
+  // shortcut: language and units are fixed, make them selectable once more languages exist.
   const rows = [
     ["Inloggad som", session?.user.email ?? "–"],
     ["Språk", "Svenska"],
