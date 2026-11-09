@@ -25,12 +25,11 @@ Lokal Supabase med testdata (kräver Docker): `npm run db:start` och sedan `npm 
 
 Varje push till `main` som klarar CI driftsätts av jobbet `deploy` i `.github/workflows/ci.yml`: först `supabase db push` mot produktionsdatabasen, sedan `npm run deploy` till Cloudflare Workers. Migreringar körs alltså innan den nya koden är ute, så de måste fungera med den gamla koden också (lägg till kolumner först, ta bort dem i en senare release).
 
-Jobbet behöver fyra secrets i GitHub (Settings → Secrets and variables → Actions):
+Jobbet behöver tre secrets i GitHub (Settings → Secrets and variables → Actions):
 
 - `CLOUDFLARE_API_TOKEN`: API-token med mallen _Edit Cloudflare Workers_
 - `CLOUDFLARE_ACCOUNT_ID`: konto-id från Cloudflare-dashboarden
-- `SUPABASE_ACCESS_TOKEN`: personlig token från supabase.com/dashboard/account/tokens
-- `SUPABASE_DB_PASSWORD`: databaslösenordet för projektet `haiidlamhbdgfugosykm`
+- `SUPABASE_DB_URL`: anslutningssträngen för _Session pooler_ (Connect i Supabase-dashboarden) med lösenordet ifyllt. Pooler-adressen behövs eftersom GitHubs runners saknar IPv6
 
 ## Inloggning
 
