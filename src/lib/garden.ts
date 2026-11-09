@@ -26,7 +26,7 @@ export function useSeason(year = seasonYear) {
       unwrap(
         await supabase
           .from("seasons")
-          .select("id, year, zone, plantings(id, crop_id, created_at, task_logs(step_key, status, done_on))")
+          .select("id, year, zone, plantings(id, crop_id, created_at, task_logs(step_key, status, done_on, note))")
           .eq("year", year)
           .maybeSingle(),
       ),
@@ -64,20 +64,26 @@ export function useToggleCrop() {
   });
 }
 
-export function useToggleTask() {
+/** Sparar ett steg som klart eller överhoppat, med datum och anteckning. `log: null` ångrar. */
+export function useLogTask() {
   const userId = useUserId();
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (args: { plantingId: string; stepKey: string; done: boolean; doneOn: string }) => {
-      if (args.done) {
+    mutationFn: async (args: {
+      plantingId: string;
+      stepKey: string;
+      log: { status: "done" | "skipped"; doneOn: string; note?: string } | null;
+    }) => {
+      if (args.log) {
         unwrap(
           await supabase.from("task_logs").upsert(
             {
               planting_id: args.plantingId,
               user_id: userId,
               step_key: args.stepKey,
-              status: "done",
-              done_on: args.doneOn,
+              status: args.log.status,
+              done_on: args.log.doneOn,
+              note: args.log.note?.trim() || null,
             },
             { onConflict: "planting_id,step_key" },
           ),
