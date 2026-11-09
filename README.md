@@ -33,7 +33,7 @@ En gröda (`shared/crops/*.ts`) är en lista steg. Varje steg har ett **ankare**
 
 Databasen lagrar inte planen. Den lagrar bara det som faktiskt hände (`task_logs`). Planen räknas om med `actuals`, så att steg som beror på ett försenat steg flyttas med.
 
-Frostdatumen per zon i `shared/zones.ts` och odlingsfönstren i grödmallarna är grova schablonvärden och behöver kalibreras, till exempel mot SMHI:s data.
+Frostdatumen per zon i `shared/zones.ts` är medianer för 1991–2020 ur SMHI:s stationsdata (metod och stationer står i filen). Odlingsfönstren i grödmallarna är grova schablonvärden.
 
 ## Nästa steg
 

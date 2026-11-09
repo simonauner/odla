@@ -24,11 +24,14 @@ export interface PlanInput {
    * utfört steg flyttas efter det verkliga datumet i stället för det planerade.
    */
   actuals?: Record<string, IsoDate>;
+  /** The user's own last spring frost date, replacing the zone's. */
+  lastFrost?: IsoDate;
 }
 
 /** Bygger en årsplan för en gröda: ett fönster per steg och upprepning. */
-export function planCrop({ crop, zone, year, actuals = {} }: PlanInput): PlannedTask[] {
-  const { lastFrost, firstFrost } = frostDates(zone, year);
+export function planCrop({ crop, zone, year, actuals = {}, lastFrost: ownLastFrost }: PlanInput): PlannedTask[] {
+  const { lastFrost: zoneLastFrost, firstFrost } = frostDates(zone, year);
+  const lastFrost = ownLastFrost ?? zoneLastFrost;
   const stepsById = new Map(crop.steps.map((s) => [s.id, s]));
   const memo = new Map<string, IsoDate[]>();
 

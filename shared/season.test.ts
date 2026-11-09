@@ -16,7 +16,12 @@ describe("planSeason", () => {
     const tasks = planSeason(3, 2027, [
       { id: "p1", crop_id: "tomato", task_logs: [{ step_key: "sow:0", status: "skipped", done_on: "2027-04-10" }] },
     ]);
-    expect(tasks.find((t) => t.stepKey === "sow:0")!.start).toBe("2027-03-20");
+    expect(tasks.find((t) => t.stepKey === "sow:0")!.start).toBe("2027-03-25");
+  });
+
+  it("passes the user's own last frost date to every planting", () => {
+    const tasks = planSeason(3, 2027, [{ id: "p1", crop_id: "tomato", task_logs: [] }], "2027-05-01");
+    expect(tasks.find((t) => t.stepKey === "plant_out:0")!.start).toBe("2027-05-08");
   });
 
   it("hoppar över okända grödor och håller två planteringar isär", () => {

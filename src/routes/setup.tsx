@@ -1,19 +1,78 @@
 import { useNavigate } from "@tanstack/react-router";
 import { CROPS } from "@shared/crops";
-import { ZONES } from "@shared/zones";
+import { tomato } from "@shared/crops/tomato";
+import { addDays } from "@shared/dates";
+import { frostDates, ZONES, type Zone } from "@shared/zones";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Toggle } from "@/components/ui/toggle";
-import { seasonYear, useProfile, useSeason, useSetZone, useToggleCrop } from "@/lib/garden";
+import { formatDay } from "@/lib/format";
+import { seasonYear, useProfile, useSeason, useSetLastFrost, useSetZone, useToggleCrop } from "@/lib/garden";
 
 function ErrorAlert({ children }: { children: string }) {
   return (
     <Alert variant="destructive" className="mt-3">
       <AlertDescription>{children}</AlertDescription>
     </Alert>
+  );
+}
+
+const tomatoPlantOut = tomato.steps.find((s) => s.id === "plant_out")!.window;
+
+function FrostSection({ season }: { season: { id: string; year: number; zone: number; last_frost: string | null } }) {
+  const setLastFrost = useSetLastFrost();
+  const zoneGuess = frostDates(season.zone as Zone, season.year).lastFrost;
+  const lastFrost = season.last_frost ?? zoneGuess;
+  const plantOut = `${formatDay(addDays(lastFrost, tomatoPlantOut[0]))}–${formatDay(addDays(lastFrost, tomatoPlantOut[1]))}`;
+
+  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const value = String(new FormData(e.currentTarget).get("lastFrost"));
+    if (value) setLastFrost.mutate({ seasonId: season.id, lastFrost: value === zoneGuess ? null : value });
+  }
+
+  return (
+    <section>
+      <h2 className="mb-1 text-lg font-semibold">När är det frostfritt?</h2>
+      <p className="mb-3 text-sm text-muted-foreground">
+        {season.last_frost
+          ? `Du har satt frostfritt från ${formatDay(lastFrost)}, så frostkänsliga plantor som tomater kan planteras ut ${plantOut}. Utifrån zonen gissade vi ${formatDay(zoneGuess)}.`
+          : `Vi gissar utifrån din zon att det är frostfritt från ${formatDay(lastFrost)}, så frostkänsliga plantor som tomater kan planteras ut ${plantOut}. Du kan korrigera datumet om du vet bättre för din plats.`}
+      </p>
+      <form onSubmit={onSubmit} className="flex flex-wrap items-end gap-2">
+        <div className="space-y-1">
+          <Label htmlFor="last-frost">Frostfritt från</Label>
+          <Input
+            key={lastFrost}
+            id="last-frost"
+            name="lastFrost"
+            type="date"
+            required
+            defaultValue={lastFrost}
+            min={`${season.year}-03-01`}
+            max={`${season.year}-07-31`}
+          />
+        </div>
+        <Button type="submit" variant="secondary" disabled={setLastFrost.isPending}>
+          Spara datum
+        </Button>
+        {season.last_frost && (
+          <Button
+            type="button"
+            variant="ghost"
+            disabled={setLastFrost.isPending}
+            onClick={() => setLastFrost.mutate({ seasonId: season.id, lastFrost: null })}
+          >
+            Använd zonens gissning
+          </Button>
+        )}
+      </form>
+      {setLastFrost.isError && <ErrorAlert>Kunde inte spara datumet.</ErrorAlert>}
+    </section>
   );
 }
 
@@ -67,6 +126,8 @@ export function SetupPage() {
         </RadioGroup>
         {setZone.isError && <ErrorAlert>Kunde inte spara zonen.</ErrorAlert>}
       </section>
+
+      {season.data && <FrostSection season={season.data} />}
 
       <section>
         <h2 className="mb-3 text-lg font-semibold">Vad vill du odla {seasonYear}?</h2>

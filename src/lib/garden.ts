@@ -26,7 +26,9 @@ export function useSeason(year = seasonYear) {
       unwrap(
         await supabase
           .from("seasons")
-          .select("id, year, zone, plantings(id, crop_id, created_at, task_logs(step_key, status, done_on, note))")
+          .select(
+            "id, year, zone, last_frost, plantings(id, crop_id, created_at, task_logs(step_key, status, done_on, note))",
+          )
           .eq("year", year)
           .maybeSingle(),
       ),
@@ -40,12 +42,29 @@ export function useSetZone(year = seasonYear) {
   return useMutation({
     mutationFn: async (zone: number) => {
       unwrap(await supabase.from("profiles").update({ zone }).eq("id", userId));
-      unwrap(await supabase.from("seasons").upsert({ user_id: userId, year, zone }, { onConflict: "user_id,year" }));
+      // A new zone means a new place, so the user's own frost date no longer applies.
+      unwrap(
+        await supabase
+          .from("seasons")
+          .upsert({ user_id: userId, year, zone, last_frost: null }, { onConflict: "user_id,year" }),
+      );
     },
     onSuccess: () =>
       qc
         .invalidateQueries({ queryKey: ["profile", userId] })
         .then(() => qc.invalidateQueries({ queryKey: ["season", userId] })),
+  });
+}
+
+/** Saves the user's own last frost date for the season. `null` goes back to the zone's date. */
+export function useSetLastFrost() {
+  const userId = useUserId();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (args: { seasonId: string; lastFrost: string | null }) => {
+      unwrap(await supabase.from("seasons").update({ last_frost: args.lastFrost }).eq("id", args.seasonId));
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["season", userId] }),
   });
 }
 
