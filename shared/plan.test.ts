@@ -1,0 +1,99 @@
+import { describe, expect, it } from "vitest";
+import { CROPS } from "./crops";
+import { lettuce } from "./crops/lettuce";
+import { tomato } from "./crops/tomato";
+import type { CropTemplate } from "./crops/types";
+import { planCrop, tasksBetween } from "./plan";
+import { ZONES } from "./zones";
+
+const byStep = (tasks: ReturnType<typeof planCrop>, stepId: string) => tasks.filter((t) => t.stepId === stepId);
+
+describe("planCrop för tomat i zon III 2027 (sista frost 15 maj, första frost 5 okt)", () => {
+  const plan = planCrop({ crop: tomato, zone: 3, year: 2027 });
+
+  it("förså 6–8 veckor före sista frost", () => {
+    expect(byStep(plan, "sow")).toMatchObject([{ start: "2027-03-20", end: "2027-04-03" }]);
+  });
+
+  it("skolar om 3–4 veckor efter sådd", () => {
+    expect(byStep(plan, "pot_up")).toMatchObject([{ start: "2027-04-10", end: "2027-04-17" }]);
+  });
+
+  it("planterar ut en till två veckor efter sista frost och avhärdar före", () => {
+    expect(byStep(plan, "plant_out")).toMatchObject([{ start: "2027-05-22", end: "2027-05-29" }]);
+    expect(byStep(plan, "harden_off")).toMatchObject([{ start: "2027-05-12", end: "2027-05-19" }]);
+  });
+
+  it("gödslar varje vecka från två veckor efter utplantering till två veckor före frost", () => {
+    const fertilize = byStep(plan, "fertilize");
+    expect(fertilize[0]!.start).toBe("2027-06-05");
+    expect(fertilize.at(-1)!.start).toBe("2027-09-18");
+    expect(fertilize).toHaveLength(16);
+  });
+
+  it("returnerar uppgifterna i datumordning med unika nycklar", () => {
+    const starts = plan.map((t) => t.start);
+    expect(starts).toEqual([...starts].sort());
+    expect(new Set(plan.map((t) => t.key)).size).toBe(plan.length);
+  });
+});
+
+describe("faktiska datum", () => {
+  it("flyttar beroende steg när sådden gjordes senare än planerat", () => {
+    const plan = planCrop({ crop: tomato, zone: 3, year: 2027, actuals: { sow: "2027-04-01" } });
+    expect(byStep(plan, "sow")[0]!.start).toBe("2027-04-01");
+    expect(byStep(plan, "pot_up")[0]!.start).toBe("2027-04-22");
+    // Utplanteringen räknas från frosten, inte från sådden.
+    expect(byStep(plan, "plant_out")[0]!.start).toBe("2027-05-22");
+  });
+
+  it("räknar om gödslingen från den verkliga utplanteringen", () => {
+    const plan = planCrop({ crop: tomato, zone: 3, year: 2027, actuals: { plant_out: "2027-06-01" } });
+    expect(byStep(plan, "fertilize")[0]!.start).toBe("2027-06-15");
+    expect(byStep(plan, "harden_off")[0]!.start).toBe("2027-05-22");
+  });
+});
+
+describe("upprepade steg", () => {
+  it("ger en skörd per sallatssådd", () => {
+    const plan = planCrop({ crop: lettuce, zone: 3, year: 2027 });
+    const sowings = byStep(plan, "sow");
+    expect(sowings.length).toBeGreaterThan(3);
+    expect(byStep(plan, "harvest")).toHaveLength(sowings.length);
+  });
+});
+
+describe("zoner", () => {
+  it("lägger allt senare i nordligare zoner", () => {
+    const south = planCrop({ crop: tomato, zone: 1, year: 2027 });
+    const north = planCrop({ crop: tomato, zone: 6, year: 2027 });
+    expect(byStep(north, "plant_out")[0]!.start > byStep(south, "plant_out")[0]!.start).toBe(true);
+  });
+
+  it.each(ZONES.map((z) => z.zone))("alla grödor går att planera i zon %i", (zone) => {
+    for (const crop of CROPS) expect(planCrop({ crop, zone, year: 2027 }).length).toBeGreaterThan(0);
+  });
+});
+
+describe("felaktiga mallar", () => {
+  it("upptäcker cirkulära beroenden", () => {
+    const broken: CropTemplate = {
+      id: "broken",
+      name: "Trasig",
+      zones: { min: 1, max: 8 },
+      steps: [
+        { id: "a", kind: "sow_indoor", title: "A", anchor: { type: "step", step: "b" }, window: [0, 0] },
+        { id: "b", kind: "pot_up", title: "B", anchor: { type: "step", step: "a" }, window: [0, 0] },
+      ],
+    };
+    expect(() => planCrop({ crop: broken, zone: 3, year: 2027 })).toThrow(/Cirkulärt/);
+  });
+});
+
+describe("tasksBetween", () => {
+  it("tar med uppgifter vars fönster överlappar veckan", () => {
+    const plan = planCrop({ crop: tomato, zone: 3, year: 2027 });
+    const week = tasksBetween(plan, "2027-03-29", "2027-04-04");
+    expect(week.map((t) => t.stepId)).toEqual(["sow"]);
+  });
+});

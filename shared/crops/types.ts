@@ -1,0 +1,37 @@
+export type TaskKind =
+  | "sow_indoor"
+  | "pot_up"
+  | "harden_off"
+  | "plant_out"
+  | "sow_outdoor"
+  | "fertilize"
+  | "water"
+  | "prune"
+  | "harvest"
+  | "clear";
+
+/** Vad ett steg räknas från: sista vårfrost, första höstfrost eller ett annat steg i samma gröda. */
+export type Anchor =
+  | { type: "last_frost" }
+  | { type: "first_frost" }
+  | { type: "step"; step: string };
+
+export interface CropStep {
+  id: string;
+  kind: TaskKind;
+  title: string;
+  description?: string;
+  anchor: Anchor;
+  /** Fönster i dagar från ankaret: [tidigast, senast]. */
+  window: [number, number];
+  /** Upprepa var n:e dag tills (inklusive) en viss dag räknat från första höstfrost. */
+  repeat?: { everyDays: number; untilDaysFromFirstFrost: number };
+}
+
+export interface CropTemplate {
+  id: string;
+  name: string;
+  /** Lägsta zon (I = 1) där grödan normalt lyckas på friland/i växthus enligt mallen. */
+  zones: { min: number; max: number };
+  steps: CropStep[];
+}
