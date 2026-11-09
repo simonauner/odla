@@ -1,4 +1,5 @@
 import { Link, Outlet, createRootRoute, createRoute, createRouter } from "@tanstack/react-router";
+import { Sprout } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSession } from "./lib/auth";
 import { supabase } from "./lib/supabase";
@@ -12,12 +13,13 @@ function Root() {
   const session = useSession();
   return (
     <div className="mx-auto max-w-3xl px-4 py-6">
-      <header className="mb-8 flex flex-wrap items-baseline justify-between gap-2">
-        <Link to="/" className="text-2xl font-semibold text-primary">
+      <header className="mb-8 flex flex-wrap items-center justify-between gap-2">
+        <Link to="/" className="flex items-center gap-1.5 font-heading text-2xl font-semibold text-primary">
+          <Sprout aria-hidden className="size-6" />
           Odla
         </Link>
         {session && (
-          <nav className="flex items-baseline gap-4 text-sm text-muted-foreground">
+          <nav className="flex items-center gap-4 text-sm text-muted-foreground">
             <Link to="/" className={navLink}>
               Min plan
             </Link>
