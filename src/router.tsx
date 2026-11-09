@@ -44,7 +44,7 @@ const routeTree = rootRoute.addChildren([
   createRoute({ getParentRoute: () => rootRoute, path: "/setup", component: SetupPage }),
 ]);
 
-export const router = createRouter({ routeTree });
+export const router = createRouter({ routeTree, basepath: "/app" });
 
 declare module "@tanstack/react-router" {
   interface Register {

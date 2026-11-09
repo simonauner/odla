@@ -55,6 +55,10 @@ Lägg till fler med `npx shadcn@latest add <namn>` när de behövs, och lägg in
 - Hero-yta överst på en sida: `rounded-3xl bg-primary p-6 text-primary-foreground sm:p-8` (se `plan.tsx`). Tom sida: samma form med `bg-secondary`.
 - Tidslinje (årsplanen): `ol` med `border-l-2` och en prick per månad, `bg-sun` för innevarande månad.
 
+## Publika startsidan
+
+`/` är `index.html`: statisk HTML utan React eller skript, så den laddar direkt. Appen ligger under `/app` (`app.html`). Startsidan använder samma tokens och Tailwind-klasser; länkar som ser ut som knappar efterliknar `Button`-klasserna. Skärmdumparna ligger i `public/screenshots/` (ljust läge, 420 px bred vy i 2x).
+
 ## Tillgänglighet
 
 - Kontrast minst WCAG AA. Ändrar du en token, kontrollera både ljust och mörkt läge.

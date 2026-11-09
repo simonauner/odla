@@ -16,7 +16,7 @@ const messages: Record<string, string> = {
 };
 
 export function LoginPage() {
-  const [mode, setMode] = useState<Mode>("signIn");
+  const [mode, setMode] = useState<Mode>(() => (location.hash === "#skapa-konto" ? "signUp" : "signIn"));
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -30,7 +30,11 @@ export function LoginPage() {
     const { data, error } =
       mode === "signIn"
         ? await supabase.auth.signInWithPassword({ email, password })
-        : await supabase.auth.signUp({ email, password, options: { emailRedirectTo: window.location.origin } });
+        : await supabase.auth.signUp({
+            email,
+            password,
+            options: { emailRedirectTo: `${window.location.origin}/app` },
+          });
     setBusy(false);
     if (error) return setError((error.code && messages[error.code]) ?? error.message);
     // Utan session vid registrering krävs e-postbekräftelse.
