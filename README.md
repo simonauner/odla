@@ -37,6 +37,8 @@ E-post och lösenord via Supabase Auth (`src/lib/auth.tsx`, `src/routes/login.ts
 
 I Supabase under **Authentication → URL Configuration** ska _Site URL_ vara sajtens adress, och både `https://<domän>/app` och `http://localhost:*/**` ska finnas under _Redirect URLs_ (bekräftelselänken leder till `/app`). Jokertecknet behövs eftersom parallella worktrees får varsin port (5173, 5174 …) via `autoPort` i `.claude/launch.json`. Annars pekar bekräftelselänken i mejlet fel. Supabase inbyggda e-post skickar bara ett fåtal mejl i timmen. Koppla in egen SMTP, t.ex. Resend, före lansering.
 
+**Confirm email** under **Authentication → Sign In / Providers → Email** must stay on in production. Shared-account invites are accepted by whoever signs in with the invited email (`account_members` policies in `supabase/migrations/20261113090000_shared_accounts.sql`). Without confirmation, anyone could sign up with that address and get into the inviter's garden. Local Supabase has it off (`enable_confirmations` in `supabase/config.toml`); that only affects local data.
+
 ## Planmotorn
 
 En gröda (`shared/crops/*.ts`) är en lista steg. Varje steg har ett **ankare** (sista vårfrost, första höstfrost eller ett annat steg) och ett **fönster** i dagar från ankaret. Steg kan upprepas, till exempel gödsling varje vecka eller successiv sådd av sallat. `planCrop()` i `shared/plan.ts` gör om mallen till daterade uppgifter för en zon och ett år.
