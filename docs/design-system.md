@@ -1,6 +1,6 @@
 # Designsystem
 
-Odla använder [shadcn/ui](https://ui.shadcn.com) (stil `radix-nova`) på Tailwind v4. Komponenterna ligger i `src/components/ui/` och är vår egen kod. Färger, radier och typsnitt är tokens i `src/index.css`.
+Grodla använder [shadcn/ui](https://ui.shadcn.com) (stil `radix-nova`) på Tailwind v4. Komponenterna ligger i `src/components/ui/` och är vår egen kod. Färger, radier och typsnitt är tokens i `src/index.css`.
 
 ## Grundregler
 
@@ -12,7 +12,7 @@ Odla använder [shadcn/ui](https://ui.shadcn.com) (stil `radix-nova`) på Tailwi
 
 ## Färger
 
-Känslan ska vara fräsch och peppig men ordnad. Ljust läge är en varm, gräddvit bakgrund med friskt bladgrönt som huvudfärg och solgult som glädjeaccent. Mörkt läge är djupt skogsgrönt med ljusare grönt.
+Känslan ska vara fräsch och peppig men ordnad. Ljust läge är en varm, gräddvit bakgrund med friskt bladgrönt som huvudfärg och solgult som glädjeaccent. Mörkt läge är djupt skogsgrönt med ljusare grönt. Logotypen använder samma grön som `primary`.
 
 | Token                                | Används till                                                                                                     |
 | ------------------------------------ | ---------------------------------------------------------------------------------------------------------------- |
@@ -28,6 +28,12 @@ Känslan ska vara fräsch och peppig men ordnad. Ljust läge är en varm, grädd
 | `border`, `input`, `ring`            | Kanter, formulärfält, fokusring                                                                                  |
 
 `chart-*` och `sidebar-*` är shadcn:s standardvärden och ska få egna färger först när vi bygger diagram eller sidomeny.
+
+## Logotyp
+
+Filerna ligger i `public/`: `grodla-logo.svg` (ordbild med sol, byter färg själv i mörkt läge), `grodla.svg` (favicon) och `grodla-icon-192/512.png` (appikoner). Visa ordbilden som `<img src="/grodla-logo.svg" alt="Grodla">` i 148×36, och aldrig mindre än 110 px bred. Färga inte om, beskär inte och lägg den inte på `bg-primary`; den ska stå på `background` eller `card`.
+
+Logotypens hex-färger är det enda undantaget från tokenregeln. Den gröna är `primary` omräknad till hex (`#007f35` ljust, `#6ed274` mörkt), solen är `#df970b` ljust och `#ffc343` mörkt. Ändrar du `primary`, uppdatera `grodla-logo.svg` och `grodla.svg` och generera om PNG-ikonerna från `grodla.svg`.
 
 ## Komponenter
 
