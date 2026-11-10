@@ -76,12 +76,14 @@ function TaskRow({ task }: { task: Task }) {
               aria-label={`${task.title} klart`}
               checked={done}
               disabled={save.isPending}
-              onCheckedChange={(checked) =>
+              onCheckedChange={(checked) => {
+                // Unticking deletes the log; with a note, open the form so "Ångra" deletes it on purpose.
+                if (checked !== true && log?.note) return setOpen(true);
                 save.mutate({
                   ...ids,
                   log: checked === true ? { status: "done", doneOn: localToday(), note: log?.note ?? undefined } : null,
-                })
-              }
+                });
+              }}
             />
             <Icon aria-hidden className="size-4 shrink-0 text-primary" />
             <span className={log ? "text-muted-foreground line-through" : undefined}>{task.title}</span>
