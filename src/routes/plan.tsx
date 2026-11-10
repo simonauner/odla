@@ -4,6 +4,7 @@ import { addDays, startOfWeek } from "@shared/dates";
 import { tasksBetween } from "@shared/plan";
 import { planSeason, shouldAskToClose } from "@shared/season";
 import { guessLastFrost } from "@shared/zones";
+import { CollapsibleSection } from "@/components/collapsible-section";
 import { TaskList, type Task } from "@/components/task-list";
 import { SlowLoading } from "@/components/slow-loading";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -193,8 +194,11 @@ export function PlanPage() {
         )}
       </section>
 
-      <section>
-        <h2 className="mb-4 font-heading text-2xl font-semibold">Årsplan {years.join(" och ")}</h2>
+      <CollapsibleSection
+        title={`Årsplan ${years.join(" och ")}`}
+        storageKey="plan.yearPlanOpen"
+        summaryClassName="mb-4"
+      >
         <ol className="space-y-8 border-l-2 border-border pl-6">
           {[...byMonth].map(([month, monthTasks]) => (
             <li key={month} className="relative">
@@ -214,7 +218,7 @@ export function PlanPage() {
             </li>
           ))}
         </ol>
-      </section>
+      </CollapsibleSection>
     </div>
   );
 }
