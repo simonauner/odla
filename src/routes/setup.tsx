@@ -35,8 +35,13 @@ export function frostHint(lastFrost: string): string {
   return `Frostkänsliga plantor som tomater kan då planteras ut ${formatDay(addDays(lastFrost, tomatoPlantOut[0]))}–${formatDay(addDays(lastFrost, tomatoPlantOut[1]))}.`;
 }
 
-const radioCard =
+export const radioCard =
   "cursor-pointer items-start gap-3 rounded-lg border p-3 font-normal has-data-checked:border-primary has-data-checked:bg-secondary";
+
+/** Whether a crop is hard on open ground in the zone, so it needs a greenhouse there. */
+export function needsGreenhouse(crop: (typeof CROPS)[number], place: { zone: Zone; kind: GardenKind }): boolean {
+  return place.kind === "open" && (place.zone < crop.zones.min || place.zone > crop.zones.max);
+}
 
 export function CropToggles(props: {
   zone: Zone;
@@ -45,8 +50,7 @@ export function CropToggles(props: {
   onToggle: (cropId: string) => void;
   disabled?: boolean;
 }) {
-  const outside = (c: (typeof CROPS)[number]) =>
-    props.kind === "open" && (props.zone < c.zones.min || props.zone > c.zones.max);
+  const outside = (c: (typeof CROPS)[number]) => needsGreenhouse(c, props);
   return (
     <div className="space-y-3">
       {CROPS.some(outside) && (

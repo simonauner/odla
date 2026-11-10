@@ -22,8 +22,6 @@ export type Database = {
           garden_id: string;
           year: number;
           last_frost: string | null;
-          closed_at: string | null;
-          remind_on: string | null;
           created_at: string;
         },
         {
@@ -32,8 +30,6 @@ export type Database = {
           garden_id: string;
           year: number;
           last_frost?: string | null;
-          closed_at?: string | null;
-          remind_on?: string | null;
           created_at?: string;
         },
         [
@@ -56,6 +52,8 @@ export type Database = {
           quantity: number | null;
           location: string | null;
           notes: string | null;
+          closed_at: string | null;
+          remind_on: string | null;
           created_at: string;
         },
         {
@@ -67,6 +65,8 @@ export type Database = {
           quantity?: number | null;
           location?: string | null;
           notes?: string | null;
+          closed_at?: string | null;
+          remind_on?: string | null;
           created_at?: string;
         },
         [

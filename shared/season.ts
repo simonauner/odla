@@ -1,5 +1,5 @@
 import type { IsoDate } from "./dates";
-import { findCrop } from "./crops";
+import { findCrop, type CropTemplate } from "./crops";
 import { planCrop, type PlannedTask } from "./plan";
 import type { Zone } from "./zones";
 
@@ -61,21 +61,31 @@ export function currentSeasonYear(today: Date = new Date()): number {
   return today.getFullYear() + (today.getMonth() >= 9 ? 1 : 0);
 }
 
-/** The season's last stretch starts here: from this day we ask whether to close it, unless the user snoozed. */
-export function closeReminderDate(year: number, remindOn?: IsoDate | null): IsoDate {
-  return remindOn ?? `${year}-10-01`;
-}
-
 /**
- * Whether to ask the user to close an open season: when every task is done or skipped, or when the
- * reminder date has passed. A snooze ("remind me in 2 weeks") holds even if everything is done.
+ * Whether to ask the user to close a crop: when every task is done or skipped, or when its last
+ * task's window has passed. A snooze ("remind me in 2 weeks") holds even if everything is done.
  */
 export function shouldAskToClose(
-  season: { year: number; remind_on?: IsoDate | null },
+  planting: { remind_on?: IsoDate | null },
   tasks: readonly SeasonTask[],
   today: IsoDate,
 ): boolean {
-  if (season.remind_on && today < season.remind_on) return false;
-  const allDone = tasks.length > 0 && tasks.every((t) => t.log);
-  return allDone || today >= closeReminderDate(season.year, season.remind_on);
+  if (tasks.length === 0) return false;
+  if (planting.remind_on) return today >= planting.remind_on;
+  const lastEnd = tasks.reduce((max, t) => (t.end > max ? t.end : max), tasks[0]!.end);
+  return tasks.every((t) => t.log) || today > lastEnd;
+}
+
+/** First and last day of a crop's plan in a season. Autumn-planted crops start the year before. */
+export function cropSpan(
+  crop: CropTemplate,
+  zone: Zone,
+  year: number,
+  lastFrost?: IsoDate,
+): { start: IsoDate; end: IsoDate } {
+  const tasks = planCrop({ crop, zone, year, lastFrost });
+  return {
+    start: tasks.reduce((min, t) => (t.start < min ? t.start : min), tasks[0]!.start),
+    end: tasks.reduce((max, t) => (t.end > max ? t.end : max), tasks[0]!.end),
+  };
 }

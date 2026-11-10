@@ -36,7 +36,7 @@ export function useSeasons() {
         await supabase
           .from("seasons")
           .select(
-            "id, year, last_frost, closed_at, remind_on, garden:gardens!inner(id, name, zone, kind), plantings(id, crop_id, created_at, task_logs(step_key, status, done_on, note))",
+            "id, year, last_frost, garden:gardens!inner(id, name, zone, kind), plantings(id, crop_id, closed_at, remind_on, created_at, task_logs(step_key, status, done_on, note))",
           )
           .order("year")
           .order("created_at"),
@@ -46,6 +46,11 @@ export function useSeasons() {
 
 export type Garden = NonNullable<ReturnType<typeof useGardens>["data"]>[number];
 export type Season = NonNullable<ReturnType<typeof useSeasons>["data"]>[number];
+
+/** A season is over when every crop in it is closed. One without crops yet is still being planned. */
+export function isOpen(season: Season): boolean {
+  return season.plantings.length === 0 || season.plantings.some((p) => !p.closed_at);
+}
 
 export interface NewSeason {
   /** An existing place, or a new one to create. */
@@ -93,20 +98,20 @@ export function useCreateSeason(year = seasonYear) {
   });
 }
 
-/** Closes a season (`closed: true`) or reopens it, or snoozes the question about closing to `remindOn`. */
-export function useUpdateSeason() {
+/** Closes crops (`closed: true`) or reopens them, or snoozes the question about closing to `remindOn`. */
+export function useUpdatePlantings() {
   const userId = useUserId();
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ seasonId, ...change }: { seasonId: string; closed?: boolean; remindOn?: string }) => {
+    mutationFn: async ({ plantingIds, ...change }: { plantingIds: string[]; closed?: boolean; remindOn?: string }) => {
       unwrap(
         await supabase
-          .from("seasons")
+          .from("plantings")
           .update({
             ...(change.closed !== undefined && { closed_at: change.closed ? new Date().toISOString() : null }),
             ...(change.remindOn && { remind_on: change.remindOn }),
           })
-          .eq("id", seasonId),
+          .in("id", plantingIds),
       );
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["seasons", userId] }),
@@ -141,16 +146,44 @@ export function useDeleteGarden() {
   });
 }
 
-export function useToggleCrop() {
+/**
+ * Adds a crop to a place for a season. Creates the place's season for that year first if it has none,
+ * with last year's frost date moved to this year when there was one.
+ */
+export function useAddCrop() {
   const userId = useUserId();
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (args: { seasonId: string; cropId: string; plantingId?: string }) => {
-      if (args.plantingId) unwrap(await supabase.from("plantings").delete().eq("id", args.plantingId));
-      else
+    mutationFn: async (args: {
+      gardenId: string;
+      year: number;
+      cropId: string;
+      seasonId?: string;
+      lastFrost?: string | null;
+    }) => {
+      // shortcut: two requests without a transaction, so a failure can leave an empty season behind; it shows no crops and does no harm.
+      const seasonId =
+        args.seasonId ??
         unwrap(
-          await supabase.from("plantings").insert({ season_id: args.seasonId, user_id: userId, crop_id: args.cropId }),
-        );
+          await supabase
+            .from("seasons")
+            .insert({ user_id: userId, garden_id: args.gardenId, year: args.year, last_frost: args.lastFrost ?? null })
+            .select("id")
+            .single(),
+        ).id;
+      unwrap(await supabase.from("plantings").insert({ season_id: seasonId, user_id: userId, crop_id: args.cropId }));
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["seasons", userId] }),
+  });
+}
+
+/** Deletes a crop and, through the database cascade, what the user logged for it. */
+export function useRemoveCrop() {
+  const userId = useUserId();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (plantingId: string) => {
+      unwrap(await supabase.from("plantings").delete().eq("id", plantingId));
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["seasons", userId] }),
   });

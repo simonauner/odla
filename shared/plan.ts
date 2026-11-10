@@ -49,7 +49,7 @@ export function planCrop({ crop, zone, year, actuals = {}, lastFrost: ownLastFro
         anchors = [lastFrost];
         break;
       case "first_frost":
-        anchors = [firstFrost];
+        anchors = [step.anchor.previousYear ? frostDates(zone, year - 1).firstFrost : firstFrost];
         break;
       case "step": {
         const anchorStep = stepsById.get(step.anchor.step);

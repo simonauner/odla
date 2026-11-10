@@ -26,8 +26,9 @@ import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/componen
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { formatDay, locale } from "@/lib/format";
-import { useLogTask, useSeasons, useUpdateSeason, type Season } from "@/lib/garden";
+import { formatDay, locale, localToday } from "@/lib/format";
+import { findCrop } from "@shared/crops";
+import { isOpen, useLogTask, useSeasons, useUpdatePlantings, type Season } from "@/lib/garden";
 import { cn } from "@/lib/utils";
 
 /** A task, with the place's name when the user grows in more than one place. */
@@ -35,11 +36,6 @@ type Task = SeasonTask & { place?: string };
 
 const monthFmt = new Intl.DateTimeFormat(locale, { month: "long" });
 const longDateFmt = new Intl.DateTimeFormat(locale, { weekday: "long", day: "numeric", month: "long" });
-
-function localToday(): string {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
 
 const kindIcon: Record<TaskKind, LucideIcon> = {
   sow_indoor: Sprout,
@@ -180,33 +176,42 @@ function TaskList({ tasks }: { tasks: Task[] }) {
   );
 }
 
-/** Asks whether to close a season that is done or past 1 October, or to be reminded later. */
-function ClosePrompt({ season, allDone, today }: { season: Season; allDone: boolean; today: string }) {
-  const update = useUpdateSeason();
+/** Asks, per place, whether the crops that are done or past their last task can be closed, or to be reminded later. */
+function ClosePrompt({ season, due, today }: { season: Season; due: Season["plantings"]; today: string }) {
+  const update = useUpdatePlantings();
+  const name = (p: (typeof due)[number]) => findCrop(p.crop_id)?.name ?? p.crop_id;
   return (
     <Card size="sm">
       <CardHeader>
-        <CardTitle>
-          Avsluta säsong {season.year} på {season.garden.name}?
-        </CardTitle>
+        <CardTitle>Klart för säsongen på {season.garden.name}?</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         <p className="text-muted-foreground">
-          {allDone ? "Alla uppgifter är klara." : "Säsongen lider mot sitt slut."} När du avslutar den försvinner den ur
-          planen. Det du har bockat av och antecknat sparas.
+          När du avslutar en gröda försvinner den ur planen. Det du har bockat av och antecknat sparas.
         </p>
+        <ul className="space-y-2">
+          {due.map((p) => (
+            <li key={p.id} className="flex items-center justify-between gap-2">
+              {name(p)} {season.year}
+              <Button
+                size="sm"
+                disabled={update.isPending}
+                onClick={() => update.mutate({ plantingIds: [p.id], closed: true })}
+              >
+                Avsluta
+              </Button>
+            </li>
+          ))}
+        </ul>
         <div className="flex flex-wrap items-center gap-2">
-          <Button disabled={update.isPending} onClick={() => update.mutate({ seasonId: season.id, closed: true })}>
-            Avsluta säsongen
-          </Button>
-          <span className="text-sm text-muted-foreground">eller påminn mig om</span>
+          <span className="text-sm text-muted-foreground">Påminn mig om</span>
           {[1, 2, 4].map((weeks) => (
             <Button
               key={weeks}
               variant="outline"
               size="sm"
               disabled={update.isPending}
-              onClick={() => update.mutate({ seasonId: season.id, remindOn: addDays(today, weeks * 7) })}
+              onClick={() => update.mutate({ plantingIds: due.map((p) => p.id), remindOn: addDays(today, weeks * 7) })}
             >
               {weeks} {weeks === 1 ? "vecka" : "veckor"}
             </Button>
@@ -232,8 +237,8 @@ export function PlanPage() {
         <AlertDescription>Kunde inte hämta planen.</AlertDescription>
       </Alert>
     );
-  // Seasons stay in the plan until the user closes them, also after the year has turned.
-  const open = seasons.data.filter((s) => !s.closed_at);
+  // Crops stay in the plan until the user closes them, also after the year has turned.
+  const open = seasons.data.filter(isOpen).map((s) => ({ ...s, plantings: s.plantings.filter((p) => !p.closed_at) }));
   if (!open.some((s) => s.plantings.length > 0)) {
     return (
       <section className="space-y-4 rounded-3xl bg-secondary p-6 text-secondary-foreground sm:p-8">
@@ -260,7 +265,18 @@ export function PlanPage() {
       s.last_frost ?? guessLastFrost(s.garden.zone, s.year, s.garden.kind),
     ),
   }));
-  const toClose = planned.filter((p) => shouldAskToClose(p.season, p.tasks, today));
+  const toClose = planned
+    .map((p) => ({
+      season: p.season,
+      due: p.season.plantings.filter((pl) =>
+        shouldAskToClose(
+          pl,
+          p.tasks.filter((t) => t.plantingId === pl.id),
+          today,
+        ),
+      ),
+    }))
+    .filter((p) => p.due.length > 0);
   const tasks: Task[] = planned
     .flatMap((p) => p.tasks.map((t) => (several ? { ...t, place: p.season.garden.name } : t)))
     .toSorted((a, b) => a.start.localeCompare(b.start) || a.key.localeCompare(b.key));
@@ -310,7 +326,7 @@ export function PlanPage() {
       </section>
 
       {toClose.map((p) => (
-        <ClosePrompt key={p.season.id} season={p.season} allDone={p.tasks.every((t) => t.log)} today={today} />
+        <ClosePrompt key={p.season.id} season={p.season} due={p.due} today={today} />
       ))}
 
       <section>

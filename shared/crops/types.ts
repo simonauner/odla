@@ -12,8 +12,12 @@ export type TaskKind =
   | "harvest"
   | "clear";
 
-/** Vad ett steg räknas från: sista vårfrost, första höstfrost eller ett annat steg i samma gröda. */
-export type Anchor = { type: "last_frost" } | { type: "first_frost" } | { type: "step"; step: string };
+/**
+ * Vad ett steg räknas från: sista vårfrost, första höstfrost eller ett annat steg i samma gröda.
+ * `previousYear` puts the step in the autumn before the season, for crops planted in autumn (garlic).
+ */
+export type Anchor =
+  { type: "last_frost" } | { type: "first_frost"; previousYear?: boolean } | { type: "step"; step: string };
 
 export interface CropStep {
   id: string;
