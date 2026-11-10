@@ -29,7 +29,7 @@ export function needsGreenhouse(crop: (typeof CROPS)[number], place: { zone: Zon
 }
 
 /** Throws the request's error. Without one, select, insert and single always return data. */
-function unwrap<T>({ data, error }: { data: T; error: unknown }): NonNullable<T> {
+export function unwrap<T>({ data, error }: { data: T; error: unknown }): NonNullable<T> {
   if (error) throw error;
   return data as NonNullable<T>;
 }
@@ -89,27 +89,15 @@ export function useCreateSeason(year = seasonYear) {
     mutationFn: async ({ garden, lastFrost, cropIds }: NewSeason) => {
       // shortcut: three requests without a transaction, so a failure can leave a place or an empty season behind; move to an RPC if that happens.
       const gardenId =
-        "id" in garden
-          ? garden.id
-          : unwrap(
-              await supabase
-                .from("gardens")
-                .insert({ ...garden, user_id: userId })
-                .select("id")
-                .single(),
-            ).id;
+        "id" in garden ? garden.id : unwrap(await supabase.from("gardens").insert(garden).select("id").single()).id;
       const season = unwrap(
         await supabase
           .from("seasons")
-          .insert({ user_id: userId, garden_id: gardenId, year, last_frost: lastFrost })
+          .insert({ garden_id: gardenId, year, last_frost: lastFrost })
           .select("id")
           .single(),
       );
-      unwrap(
-        await supabase
-          .from("plantings")
-          .insert(cropIds.map((crop_id) => ({ season_id: season.id, user_id: userId, crop_id }))),
-      );
+      unwrap(await supabase.from("plantings").insert(cropIds.map((crop_id) => ({ season_id: season.id, crop_id }))));
       return season.id;
     },
     onSuccess: () =>
@@ -186,12 +174,12 @@ export function seasonTarget(seasons: Season[], gardenId: string, year: number) 
 type SeasonTarget = ReturnType<typeof seasonTarget>;
 
 /** The target's season id, creating the season first if the place has none that year. */
-async function seasonIdFor(userId: string, t: SeasonTarget): Promise<string> {
+async function seasonIdFor(t: SeasonTarget): Promise<string> {
   if (t.season) return t.season.id;
   return unwrap(
     await supabase
       .from("seasons")
-      .insert({ user_id: userId, garden_id: t.gardenId, year: t.year, last_frost: t.lastFrost })
+      .insert({ garden_id: t.gardenId, year: t.year, last_frost: t.lastFrost })
       .select("id")
       .single(),
   ).id;
@@ -204,12 +192,8 @@ export function useAddCrops() {
   return useMutation({
     mutationFn: async ({ target, cropIds }: { target: SeasonTarget; cropIds: string[] }) => {
       // shortcut: two requests without a transaction, so a failure can leave an empty season behind; it shows no crops and does no harm.
-      const seasonId = await seasonIdFor(userId, target);
-      unwrap(
-        await supabase
-          .from("plantings")
-          .insert(cropIds.map((crop_id) => ({ season_id: seasonId, user_id: userId, crop_id }))),
-      );
+      const seasonId = await seasonIdFor(target);
+      unwrap(await supabase.from("plantings").insert(cropIds.map((crop_id) => ({ season_id: seasonId, crop_id }))));
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["seasons", userId] }),
   });
@@ -221,7 +205,7 @@ export function useMovePlanting() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ plantingId, target }: { plantingId: string; target: SeasonTarget }) => {
-      const seasonId = await seasonIdFor(userId, target);
+      const seasonId = await seasonIdFor(target);
       unwrap(await supabase.from("plantings").update({ season_id: seasonId }).eq("id", plantingId));
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["seasons", userId] }),
@@ -271,7 +255,6 @@ export function useLogTask() {
           await supabase.from("task_logs").upsert(
             {
               planting_id: args.plantingId,
-              user_id: userId,
               step_key: args.stepKey,
               status: args.log.status,
               done_on: args.log.doneOn,
