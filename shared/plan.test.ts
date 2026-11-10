@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { CROPS } from "./crops";
+import { garlic } from "./crops/garlic";
 import { lettuce } from "./crops/lettuce";
 import { tomato } from "./crops/tomato";
 import type { CropTemplate } from "./crops/types";
@@ -84,11 +85,20 @@ describe("zoner", () => {
     for (const crop of CROPS) expect(planCrop({ crop, zone, year: 2027 }).length).toBeGreaterThan(0);
   });
 
+  // Autumn-planted crops (garlic) start in the autumn before the season.
   it.each(ZONES.map((z) => z.zone))("alla grödors uppgifter ligger inom året i zon %i", (zone) => {
     const outside = CROPS.flatMap((crop) => planCrop({ crop, zone, year: 2027 }))
-      .filter((t) => t.start < "2027-01-01" || t.end > "2027-12-31")
+      .filter((t) => t.start < "2026-08-01" || t.end > "2027-12-31")
       .map((t) => t.key);
     expect(outside).toEqual([]);
+  });
+});
+
+describe("vitlök", () => {
+  it("sätts hösten före säsongen och skördas på sommaren", () => {
+    const plan = planCrop({ crop: garlic, zone: 3, year: 2027 });
+    expect(byStep(plan, "plant_out")).toMatchObject([{ start: "2026-09-14", end: "2026-10-12" }]);
+    expect(byStep(plan, "harvest")[0]!.start).toBe("2027-07-14");
   });
 });
 

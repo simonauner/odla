@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Ellipsis } from "lucide-react";
+import { findCrop } from "@shared/crops";
 import { ConfirmDialog } from "@/components/confirm-button";
 import { Button } from "@/components/ui/button";
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,8 +12,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useDeleteGarden, useGardens, useSeasons, useUpdateSeason, type Garden, type Season } from "@/lib/garden";
+import { useDeleteGarden, useGardens, useSeasons, useUpdatePlantings, type Garden, type Season } from "@/lib/garden";
 import { ErrorAlert, placeLabel } from "./setup";
+
+const growing = (s: Season) =>
+  s.plantings.filter((p) => !p.closed_at).map((p) => findCrop(p.crop_id)?.name ?? p.crop_id);
 
 function PlaceCard({
   garden,
@@ -24,7 +28,7 @@ function PlaceCard({
   seasons: Season[];
   onDelete: () => Promise<unknown>;
 }) {
-  const updateSeason = useUpdateSeason();
+  const updatePlantings = useUpdatePlantings();
   const [closing, setClosing] = useState<Season | null>(null);
   const [deleting, setDeleting] = useState(false);
 
@@ -42,7 +46,7 @@ function PlaceCard({
             <DropdownMenuContent align="end">
               {seasons.map((s) => (
                 <DropdownMenuItem key={s.id} onSelect={() => setClosing(s)}>
-                  Avsluta säsong {s.year}
+                  Avsluta alla grödor {s.year}
                 </DropdownMenuItem>
               ))}
               {seasons.length > 0 && <DropdownMenuSeparator />}
@@ -56,25 +60,31 @@ function PlaceCard({
       <CardContent className="space-y-1 text-muted-foreground">
         <p>{placeLabel(garden)}</p>
         {seasons.map((s) => (
-          <p key={s.id} className="flex items-center justify-between gap-2">
-            Säsong {s.year} · {s.plantings.length} {s.plantings.length === 1 ? "gröda" : "grödor"}
-            <Button asChild variant="ghost" size="sm">
-              <Link to="/plats/$seasonId" params={{ seasonId: s.id }}>
-                Ändra
-              </Link>
-            </Button>
+          <p key={s.id}>
+            {s.year}: {growing(s).join(", ")}
           </p>
         ))}
-        {updateSeason.isError && <ErrorAlert>Kunde inte avsluta säsongen.</ErrorAlert>}
+        <Button asChild variant="ghost" size="sm">
+          <Link to="/plats/$gardenId" params={{ gardenId: garden.id }}>
+            {seasons.length > 0 ? "Ändra grödor" : "Lägg till grödor"}
+          </Link>
+        </Button>
+        {updatePlantings.isError && <ErrorAlert>Kunde inte avsluta grödorna.</ErrorAlert>}
       </CardContent>
       <ConfirmDialog
         open={closing !== null}
         onOpenChange={(open) => !open && setClosing(null)}
-        title={`Avsluta säsong ${closing?.year} på ${garden.name}?`}
-        description="Säsongen försvinner ur din plan. Det du har bockat av och antecknat sparas."
-        action="Avsluta säsongen"
+        title={`Avsluta alla grödor ${closing?.year} på ${garden.name}?`}
+        description="Grödorna försvinner ur din plan. Det du har bockat av och antecknat sparas."
+        action="Avsluta grödorna"
         destructive={false}
-        onConfirm={() => closing && updateSeason.mutateAsync({ seasonId: closing.id, closed: true })}
+        onConfirm={() =>
+          closing &&
+          updatePlantings.mutateAsync({
+            plantingIds: closing.plantings.filter((p) => !p.closed_at).map((p) => p.id),
+            closed: true,
+          })
+        }
       />
       <ConfirmDialog
         open={deleting}
@@ -99,13 +109,13 @@ export function PlacesPage() {
 
   const places = gardens.data.map((g) => ({
     garden: g,
-    open: seasons.data.filter((s) => s.garden.id === g.id && !s.closed_at),
+    open: seasons.data.filter((s) => s.garden.id === g.id && growing(s).length > 0),
   }));
-  // Active: something is growing this season, i.e. an open season with crops.
-  const groups = Map.groupBy(places, (p) => (p.open.some((s) => s.plantings.length > 0) ? "active" : "idle"));
+  // Active: something is growing, in any season.
+  const groups = Map.groupBy(places, (p) => (p.open.length > 0 ? "active" : "idle"));
   const sections = [
-    { key: "active", title: "Med pågående säsong" },
-    { key: "idle", title: "Utan pågående säsong" },
+    { key: "active", title: "Där något växer" },
+    { key: "idle", title: "Där inget växer just nu" },
   ] as const;
 
   return (

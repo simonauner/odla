@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { currentSeasonYear, planSeason, shouldAskToClose, type SeasonTask } from "./season";
+import { garlic } from "./crops/garlic";
+import { tomato } from "./crops/tomato";
+import { cropSpan, currentSeasonYear, planSeason, shouldAskToClose, type SeasonTask } from "./season";
 
 describe("planSeason", () => {
   it("märker uppgifter med plantering och logg", () => {
@@ -43,19 +45,26 @@ describe("currentSeasonYear", () => {
 });
 
 describe("shouldAskToClose", () => {
-  const open = { log: undefined } as SeasonTask;
-  const done = { log: { step_key: "a:0", status: "done", done_on: "2027-05-01" } } as SeasonTask;
+  const open = { log: undefined, end: "2027-07-31" } as SeasonTask;
+  const done = { log: { step_key: "a:0", status: "done", done_on: "2027-05-01" }, end: "2027-06-30" } as SeasonTask;
 
-  it("asks from 1 October, or earlier when every task is done", () => {
-    expect(shouldAskToClose({ year: 2027 }, [open, done], "2027-09-30")).toBe(false);
-    expect(shouldAskToClose({ year: 2027 }, [open, done], "2027-10-01")).toBe(true);
-    expect(shouldAskToClose({ year: 2027 }, [done], "2027-08-01")).toBe(true);
-    expect(shouldAskToClose({ year: 2027 }, [], "2027-08-01")).toBe(false);
+  it("asks after the crop's last task, or earlier when every task is done", () => {
+    expect(shouldAskToClose({}, [open, done], "2027-07-31")).toBe(false);
+    expect(shouldAskToClose({}, [open, done], "2027-08-01")).toBe(true);
+    expect(shouldAskToClose({}, [done], "2027-05-02")).toBe(true);
+    expect(shouldAskToClose({}, [], "2028-01-01")).toBe(false);
   });
 
   it("waits until a snoozed date, even when everything is done", () => {
-    const snoozed = { year: 2027, remind_on: "2027-10-15" };
+    const snoozed = { remind_on: "2027-10-15" };
     expect(shouldAskToClose(snoozed, [done], "2027-10-14")).toBe(false);
     expect(shouldAskToClose(snoozed, [open], "2027-10-15")).toBe(true);
+  });
+});
+
+describe("cropSpan", () => {
+  it("starts garlic in the autumn before its season", () => {
+    expect(cropSpan(garlic, 3, 2027)).toMatchObject({ start: "2026-09-14" });
+    expect(cropSpan(tomato, 3, 2027).start.slice(0, 4)).toBe("2027");
   });
 });

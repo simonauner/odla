@@ -42,7 +42,7 @@ const routeTree = rootRoute.addChildren([
   createRoute({ getParentRoute: () => rootRoute, path: "/", component: PlanPage }),
   createRoute({ getParentRoute: () => rootRoute, path: "/setup", component: SetupPage }),
   createRoute({ getParentRoute: () => rootRoute, path: "/platser", component: PlacesPage }),
-  createRoute({ getParentRoute: () => rootRoute, path: "/plats/$seasonId", component: PlacePage }),
+  createRoute({ getParentRoute: () => rootRoute, path: "/plats/$gardenId", component: PlacePage }),
   createRoute({ getParentRoute: () => rootRoute, path: "/profil", component: ProfilePage }),
 ]);
 
