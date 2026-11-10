@@ -23,6 +23,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatDay, localToday } from "@/lib/format";
+import { useUserId } from "@/lib/auth";
 import { useLogTask } from "@/lib/garden";
 
 /** A task, with the place's name when the user grows in more than one place. */
@@ -45,6 +46,7 @@ const kindIcon: Record<TaskKind, LucideIcon> = {
 
 function TaskRow({ task }: { task: Task }) {
   const save = useLogTask();
+  const userId = useUserId();
   const [open, setOpen] = useState(false);
   const log = task.log;
   const done = log?.status === "done";
@@ -52,6 +54,8 @@ function TaskRow({ task }: { task: Task }) {
   const id = `task-${task.key}`;
   const ids = { plantingId: task.plantingId, stepKey: task.stepKey };
   const Icon = kindIcon[task.kind];
+  // Name whoever else in a shared account did the step.
+  const byOther = log?.by && log.by.id !== userId ? ` av ${log.by.display_name}` : "";
 
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -82,11 +86,11 @@ function TaskRow({ task }: { task: Task }) {
             <Icon aria-hidden className="size-4 shrink-0 text-primary" />
             <span className={log ? "text-muted-foreground line-through" : undefined}>{task.title}</span>
             {task.place && <Badge variant="outline">{task.place}</Badge>}
-            {skipped && <Badge variant="secondary">Överhoppad</Badge>}
+            {skipped && <Badge variant="secondary">Överhoppad{byOther}</Badge>}
           </CardTitle>
           <CardAction className="flex items-center gap-2 text-sm text-muted-foreground">
             {done
-              ? `Klart ${formatDay(log!.done_on)}`
+              ? `Klart ${formatDay(log!.done_on)}${byOther}`
               : task.start === task.end
                 ? formatDay(task.start)
                 : `${formatDay(task.start)}–${formatDay(task.end)}`}

@@ -8,12 +8,32 @@ export type Database = {
   public: {
     Tables: {
       profiles: Table<
-        { id: string; display_name: string | null; created_at: string },
-        { id: string; display_name?: string | null; created_at?: string }
+        { id: string; display_name: string | null; premium: boolean; created_at: string },
+        { id: string; display_name?: string | null; premium?: boolean; created_at?: string }
+      >;
+      account_members: Table<
+        { account_id: string; email: string; user_id: string | null; created_at: string },
+        { account_id: string; email: string; user_id?: string | null; created_at?: string },
+        [
+          {
+            foreignKeyName: "account_members_account_id_fkey";
+            columns: ["account_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "account_members_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ]
       >;
       gardens: Table<
         { id: string; user_id: string; name: string; zone: number; kind: string; created_at: string },
-        { id?: string; user_id: string; name: string; zone: number; kind?: string; created_at?: string }
+        { id?: string; user_id?: string; name: string; zone: number; kind?: string; created_at?: string }
       >;
       seasons: Table<
         {
@@ -26,7 +46,7 @@ export type Database = {
         },
         {
           id?: string;
-          user_id: string;
+          user_id?: string;
           garden_id: string;
           year: number;
           last_frost?: string | null;
@@ -59,7 +79,7 @@ export type Database = {
         {
           id?: string;
           season_id: string;
-          user_id: string;
+          user_id?: string;
           crop_id: string;
           variety?: string | null;
           quantity?: number | null;
@@ -88,19 +108,28 @@ export type Database = {
           status: string;
           done_on: string;
           note: string | null;
+          logged_by: string | null;
           created_at: string;
         },
         {
           id?: string;
           planting_id: string;
-          user_id: string;
+          user_id?: string;
           step_key: string;
           status?: string;
           done_on: string;
           note?: string | null;
+          logged_by?: string | null;
           created_at?: string;
         },
         [
+          {
+            foreignKeyName: "task_logs_logged_by_fkey";
+            columns: ["logged_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "task_logs_planting_id_fkey";
             columns: ["planting_id"];
@@ -123,7 +152,7 @@ export type Database = {
         {
           id?: string;
           planting_id: string;
-          user_id: string;
+          user_id?: string;
           storage_path: string;
           taken_on?: string;
           caption?: string | null;
@@ -151,7 +180,7 @@ export type Database = {
         },
         {
           planting_id: string;
-          user_id: string;
+          user_id?: string;
           rating?: number | null;
           harvest_kg?: number | null;
           went_well?: string | null;

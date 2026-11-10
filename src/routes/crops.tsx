@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/page-header";
 import { SlowLoading } from "@/components/slow-loading";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useMemberships } from "@/lib/account";
 import { isOpen, placeLabel, seasonYear, useGardens, useSeasons, type Season } from "@/lib/garden";
 
 /** One place's crops in a year, each linking to its own page. */
@@ -46,6 +47,8 @@ function YearSection({ year, seasons }: { year: number; seasons: Season[] }) {
 export function CropsPage() {
   const gardens = useGardens();
   const seasons = useSeasons();
+  // The header line can wait for this; the page does not.
+  const owner = useMemberships().data?.joined[0]?.owner?.display_name;
 
   if (gardens.isPending || seasons.isPending) return <SlowLoading loading />;
   if (gardens.isError || seasons.isError) return <ErrorAlert>Kunde inte hämta dina odlingar.</ErrorAlert>;
@@ -62,6 +65,7 @@ export function CropsPage() {
     <div className="space-y-10">
       <PageHeader
         title="Odlingar"
+        description={owner && `Du delar odling med ${owner}`}
         actions={
           gardens.data.length > 0 && (
             <>

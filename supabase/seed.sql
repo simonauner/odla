@@ -52,3 +52,40 @@ from public.seasons where id = '22222222-2222-2222-2222-222222222222';
 insert into public.plantings (id, season_id, user_id, crop_id) values
   ('33333333-3333-3333-3333-333333333333', '22222222-2222-2222-2222-222222222223', '11111111-1111-1111-1111-111111111111', 'lettuce'),
   ('33333333-3333-3333-3333-333333333334', '22222222-2222-2222-2222-222222222223', '11111111-1111-1111-1111-111111111111', 'potato');
+
+-- A second user, Partner (partner@odla.test / odla-test-123), is a member of Testagent's premium account
+-- and has sown the lettuce at "Hemma", so the plan shows who did it.
+insert into auth.users (
+  instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
+  raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+  confirmation_token, recovery_token, email_change, email_change_token_new
+) values (
+  '00000000-0000-0000-0000-000000000000', '55555555-5555-5555-5555-555555555555',
+  'authenticated', 'authenticated', 'partner@odla.test', extensions.crypt('odla-test-123', extensions.gen_salt('bf')), now(),
+  '{"provider":"email","providers":["email"]}', '{}', now(), now(),
+  '', '', '', ''
+);
+
+insert into auth.identities (id, user_id, provider_id, provider, identity_data, last_sign_in_at, created_at, updated_at)
+values (
+  gen_random_uuid(), '55555555-5555-5555-5555-555555555555', '55555555-5555-5555-5555-555555555555', 'email',
+  '{"sub":"55555555-5555-5555-5555-555555555555","email":"partner@odla.test","email_verified":true}', now(), now(), now()
+);
+
+update public.profiles set display_name = 'Partner' where id = '55555555-5555-5555-5555-555555555555';
+update public.profiles set premium = true where id = '11111111-1111-1111-1111-111111111111';
+
+-- Partner's own place rests while Partner is a member, and comes back if Partner leaves.
+insert into public.gardens (id, user_id, name, zone, kind) values
+  ('44444444-4444-4444-4444-444444444443', '55555555-5555-5555-5555-555555555555', 'Balkongen', 1, 'open');
+
+insert into public.account_members (account_id, email, user_id) values
+  ('11111111-1111-1111-1111-111111111111', 'partner@odla.test', '55555555-5555-5555-5555-555555555555'),
+  ('11111111-1111-1111-1111-111111111111', 'vän@odla.test', null);
+
+-- The set_account_owner trigger records the signed-in user as the one who logged the step.
+select set_config('request.jwt.claims', '{"sub":"55555555-5555-5555-5555-555555555555"}', false);
+insert into public.task_logs (planting_id, step_key, status, done_on)
+select '33333333-3333-3333-3333-333333333332', 'sow:0', 'done', make_date(year, 4, 10)
+from public.seasons where id = '22222222-2222-2222-2222-222222222222';
+select set_config('request.jwt.claims', '', false);
