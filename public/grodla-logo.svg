@@ -1,9 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 173 42">
   <style>
-    .ink { fill: #465117; }
+    .ink { fill: #007f35; }
     .sun { fill: #df970b; }
     @media (prefers-color-scheme: dark) {
-      .ink { fill: #b7ca73; }
+      .ink { fill: #6ed274; }
       .sun { fill: #ffc343; }
     }
   </style>
