@@ -1,6 +1,6 @@
-import type { IsoDate } from "./dates";
+import { addDays, type IsoDate } from "./dates";
 import { findCrop, type CropTemplate } from "./crops";
-import { planCrop, type PlannedTask } from "./plan";
+import { planCrop, tasksBetween, type PlannedTask } from "./plan";
 import type { Zone } from "./zones";
 
 export interface LoggedStep {
@@ -56,6 +56,18 @@ export function planSeason(
       });
     })
     .toSorted((a, b) => a.start.localeCompare(b.start) || a.key.localeCompare(b.key));
+}
+
+/**
+ * The week's tasks plus missed ones that are not done. A missed round of a repeated step drops out
+ * once a later round of it has started, so a weekly chore shows once instead of piling up.
+ */
+export function tasksThisWeek<T extends SeasonTask>(tasks: readonly T[], monday: IsoDate): T[] {
+  const sunday = addDays(monday, 6);
+  const current = new Set(tasksBetween(tasks, monday, sunday));
+  const started = (t: T) =>
+    tasks.some((u) => u.plantingId === t.plantingId && u.stepId === t.stepId && u.start > t.start && u.start <= sunday);
+  return tasks.filter((t) => current.has(t) || (!t.log && t.end < monday && !started(t)));
 }
 
 /** Säsongen man planerar för: innevarande år, eller nästa år från oktober. */

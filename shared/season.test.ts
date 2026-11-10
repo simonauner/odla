@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { garlic } from "./crops/garlic";
 import { tomato } from "./crops/tomato";
-import { cropSpan, currentSeasonYear, planSeason, shouldAskToClose, type SeasonTask } from "./season";
+import { cropSpan, currentSeasonYear, planSeason, shouldAskToClose, tasksThisWeek, type SeasonTask } from "./season";
 
 describe("planSeason", () => {
   it("märker uppgifter med plantering och logg", () => {
@@ -41,6 +41,28 @@ describe("currentSeasonYear", () => {
   it("planerar nästa år från oktober", () => {
     expect(currentSeasonYear(new Date(2026, 8, 30))).toBe(2026);
     expect(currentSeasonYear(new Date(2026, 10, 9))).toBe(2027);
+  });
+});
+
+describe("tasksThisWeek", () => {
+  const tasks = planSeason(3, 2027, [{ id: "p1", crop_id: "tomato", task_logs: [] }]);
+  const fertilize = tasks.filter((t) => t.stepId === "fertilize");
+
+  it("keeps a missed one-off task but only the latest missed round of a repeated one", () => {
+    const monday = "2027-08-02";
+    const week = tasksThisWeek(tasks, monday);
+    expect(week.filter((t) => t.stepId === "fertilize")).toEqual(
+      fertilize.filter((t) => t.end >= monday && t.start <= "2027-08-08"),
+    );
+    expect(week.some((t) => t.stepId === "sow")).toBe(true);
+  });
+
+  it("drops a missed task once it is done", () => {
+    const sow = tasks.find((t) => t.stepId === "sow")!;
+    const logged = tasks.map((t) =>
+      t === sow ? { ...t, log: { step_key: "sow:0", status: "done", done_on: "2027-03-25" } } : t,
+    );
+    expect(tasksThisWeek(logged, "2027-08-02").some((t) => t.stepId === "sow")).toBe(false);
   });
 });
 
