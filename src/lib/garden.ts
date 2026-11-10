@@ -118,7 +118,11 @@ export function useUpdatePlantings() {
         await supabase
           .from("plantings")
           .update({
-            ...(change.closed !== undefined && { closed_at: change.closed ? new Date().toISOString() : null }),
+            // Closing or reopening ends any snooze, so a reopened crop is not asked about at once.
+            ...(change.closed !== undefined && {
+              closed_at: change.closed ? new Date().toISOString() : null,
+              remind_on: null,
+            }),
             ...(change.remindOn && { remind_on: change.remindOn }),
           })
           .in("id", plantingIds),
