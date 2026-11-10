@@ -1,8 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Sprout } from "lucide-react";
 import { addDays, startOfWeek } from "@shared/dates";
-import { tasksBetween } from "@shared/plan";
-import { planSeason, shouldAskToClose } from "@shared/season";
+import { planSeason, shouldAskToClose, tasksThisWeek } from "@shared/season";
 import { guessLastFrost } from "@shared/zones";
 import { CollapsibleSection } from "@/components/collapsible-section";
 import { TaskList, type Task } from "@/components/task-list";
@@ -134,8 +133,7 @@ export function PlanPage() {
   const seasonLabel = `Säsong ${years.join(" och ")}`;
   const monday = startOfWeek(today);
   const sunday = addDays(monday, 6);
-  // Den här veckan, plus missade uppgifter som inte är avbockade.
-  const thisWeek = tasks.filter((t) => tasksBetween([t], monday, sunday).length > 0 || (!t.log && t.end < monday));
+  const thisWeek = tasksThisWeek(tasks, monday);
   const upcoming = tasks.filter((t) => !t.log && t.start > sunday).slice(0, 3);
   const byMonth = Map.groupBy(tasks, (t) => t.start.slice(0, 7));
   const thisMonth = today.slice(0, 7);

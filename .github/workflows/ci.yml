@@ -20,8 +20,21 @@ jobs:
       - run: npm run format:check
       - run: npm test
 
+  db:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5.0.0
+      - uses: actions/setup-node@v5.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      # Database, auth and storage only: the migrations need their schemas, the tests run SQL.
+      - run: npx supabase start -x studio,realtime,imgproxy,mailpit,edge-runtime,logflare,vector,supavisor,postgres-meta,kong,postgrest
+      - run: npm run test:db
+
   deploy:
-    needs: check
+    needs: [check, db]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     # One deploy at a time; a newer push waits instead of racing migrations.
