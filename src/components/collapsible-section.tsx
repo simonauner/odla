@@ -18,12 +18,20 @@ export function CollapsibleSection({
   summaryClassName?: string;
   children: ReactNode;
 }) {
-  const stored = localStorage.getItem(storageKey);
+  // Storage throws when the browser blocks site data; then the section just starts in its default state.
+  let stored: string | null = null;
+  try {
+    stored = localStorage.getItem(storageKey);
+  } catch {}
   return (
     <details
       className={cn("group", className)}
       open={stored ? stored === "open" : defaultOpen}
-      onToggle={(e) => localStorage.setItem(storageKey, e.currentTarget.open ? "open" : "closed")}
+      onToggle={(e) => {
+        try {
+          localStorage.setItem(storageKey, e.currentTarget.open ? "open" : "closed");
+        } catch {}
+      }}
     >
       <summary
         className={cn(
