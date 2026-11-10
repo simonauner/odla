@@ -8,7 +8,6 @@
     "binding": "ASSETS",
     // Inga SPA-fallback: / är den statiska startsidan, workern ger /app/* appens HTML.
     "not_found_handling": "none",
-    "run_worker_first": ["/api/*"],
   },
   "vars": {
     // Publika värden (publishable key är gjord för att synas i klienten; RLS skyddar datat).

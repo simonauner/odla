@@ -5,8 +5,8 @@ Planera, följ upp och utvärdera din odling. Du väljer odlingszon och vad du v
 ## Stack
 
 - **Frontend:** React 19 + Vite + TanStack Router/Query + Tailwind + shadcn/ui (`src/`). Regler för färger och komponenter: [docs/design-system.md](docs/design-system.md)
-- **API:** Hono på Cloudflare Workers (`worker/`). Samma Worker serverar den statiska startsidan på `/`, appen på `/app` och `/api/*`
-- **Delad kod:** planmotor, zoner och grödmallar i TypeScript (`shared/`), som används av både webben och API:t
+- **Hosting:** Cloudflare Workers (`worker/`) serves the static start page on `/` and the app on `/app`
+- **Delad kod:** planmotor, zoner och grödmallar i TypeScript (`shared/`), som används av webben
 - **Databas, inloggning och foton:** Supabase-projektet `haiidlamhbdgfugosykm` (eu-north-1, Stockholm). Migreringarna i `supabase/migrations/` körs mot produktion vid deploy. Webben pratar direkt med Supabase via `supabase-js` med användarens session; RLS begränsar allt till egna rader. Den publika URL:en och publishable-nyckeln finns i `wrangler.jsonc` och `.env`; inga hemliga nycklar finns i repot
 
 ## Kom igång
@@ -14,7 +14,7 @@ Planera, följ upp och utvärdera din odling. Du väljer odlingszon och vad du v
 ```bash
 npm install
 npm run dev      # http://localhost:5173 – Vite + Workers-runtime lokalt
-npm test         # vitest: planmotor och API
+npm test         # vitest: plan engine
 npm run test:db  # pgTAP: who sees what in shared accounts (needs local Supabase running)
 npm run build    # typkontroll + bygge till dist/
 npm run deploy   # manuell deploy till Cloudflare (kräver `npx wrangler login`); normalt sköter CI det

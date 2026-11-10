@@ -1,10 +1,8 @@
-import { app } from "./app";
-
 export default {
-  fetch(req, env, ctx) {
+  fetch(req, env) {
     const url = new URL(req.url);
     // Appens klientroutes (/app/setup) finns inte som filer; svara med appens HTML.
     if (url.pathname.startsWith("/app/")) return env.ASSETS.fetch(new URL("/app", url));
-    return app.fetch(req, env, ctx);
+    return new Response("Not found", { status: 404 });
   },
 } satisfies ExportedHandler<Env>;
