@@ -1,163 +1,17 @@
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { CROPS } from "@shared/crops";
-import { tomato } from "@shared/crops/tomato";
-import { addDays } from "@shared/dates";
-import { guessLastFrost, zoneInfo, ZONES, type GardenKind, type Zone } from "@shared/zones";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
+import { guessLastFrost, type GardenKind, type Zone } from "@shared/zones";
+import { CropToggles } from "@/components/crop-toggles";
+import { ErrorAlert } from "@/components/error-alert";
+import { PageHeader } from "@/components/page-header";
+import { PlaceFields, radioCard } from "@/components/place-fields";
+import { SlowLoading } from "@/components/slow-loading";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Toggle } from "@/components/ui/toggle";
 import { formatDay } from "@/lib/format";
-import { seasonYear, useCreateSeason, useGardens, useSeasons } from "@/lib/garden";
-
-export function ErrorAlert({ children }: { children: string }) {
-  return (
-    <Alert variant="destructive" className="mt-3">
-      <AlertDescription>{children}</AlertDescription>
-    </Alert>
-  );
-}
-
-export const kindLabel: Record<GardenKind, string> = { open: "Friland", greenhouse: "Växthus" };
-
-export function placeLabel(garden: { zone: Zone; kind: GardenKind }): string {
-  return `${zoneInfo(garden.zone).label}, ${kindLabel[garden.kind].toLowerCase()}`;
-}
-
-const tomatoPlantOut = tomato.steps.find((s) => s.id === "plant_out")!.window;
-
-/** Explains what the frost date means, with tomato planting out as the example. */
-export function frostHint(lastFrost: string): string {
-  return `Frostkänsliga plantor som tomater kan då planteras ut ${formatDay(addDays(lastFrost, tomatoPlantOut[0]))}–${formatDay(addDays(lastFrost, tomatoPlantOut[1]))}.`;
-}
-
-export const radioCard =
-  "cursor-pointer items-start gap-3 rounded-lg border p-3 font-normal has-data-checked:border-primary has-data-checked:bg-secondary";
-
-/** Whether a crop is hard on open ground in the zone, so it needs a greenhouse there. */
-export function needsGreenhouse(crop: (typeof CROPS)[number], place: { zone: Zone; kind: GardenKind }): boolean {
-  return place.kind === "open" && (place.zone < crop.zones.min || place.zone > crop.zones.max);
-}
-
-export function CropToggles(props: {
-  /** The crops to offer, all by default. */
-  crops?: readonly (typeof CROPS)[number][];
-  zone: Zone;
-  kind: GardenKind;
-  isSelected: (cropId: string) => boolean;
-  onToggle: (cropId: string) => void;
-  disabled?: boolean;
-}) {
-  const crops = props.crops ?? CROPS;
-  const outside = (c: (typeof CROPS)[number]) => needsGreenhouse(c, props);
-  return (
-    <div className="space-y-3">
-      {crops.some(outside) && (
-        <p className="text-sm text-muted-foreground">
-          Grödor märkta <Badge variant="warning">Kräver växthus</Badge> är svåra på friland i{" "}
-          {zoneInfo(props.zone).label.replace("Zon", "zon")}.
-        </p>
-      )}
-      <div className="flex flex-wrap gap-2">
-        {crops.map((c) => {
-          const outsideZone = outside(c);
-          return (
-            <Toggle
-              key={c.id}
-              variant="outline"
-              pressed={props.isSelected(c.id)}
-              disabled={props.disabled}
-              onPressedChange={() => props.onToggle(c.id)}
-              className="rounded-full px-4"
-            >
-              {c.name}
-              {outsideZone && <Badge variant="warning">Kräver växthus</Badge>}
-            </Toggle>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-/** Name, kind and zone of a place, for a new place or one being edited. */
-export function PlaceFields(props: {
-  name: string;
-  kind: GardenKind;
-  zone: Zone | null;
-  onName: (name: string) => void;
-  onKind: (kind: GardenKind) => void;
-  onZone: (zone: Zone) => void;
-}) {
-  return (
-    <div className="space-y-4">
-      <div className="space-y-1">
-        <Label htmlFor="garden-name">Namn på platsen</Label>
-        <Input
-          id="garden-name"
-          value={props.name}
-          maxLength={60}
-          placeholder="Till exempel Hemma, Växthuset eller Lantstället"
-          onChange={(e) => props.onName(e.target.value)}
-        />
-      </div>
-      <div className="space-y-2">
-        <p className="text-sm font-medium">Friland eller växthus?</p>
-        <RadioGroup
-          value={props.kind}
-          onValueChange={(v) => props.onKind(v as GardenKind)}
-          className="grid gap-2 sm:grid-cols-2"
-        >
-          {(["open", "greenhouse"] as const).map((k) => (
-            <Label key={k} className={radioCard}>
-              <RadioGroupItem value={k} className="mt-0.5" />
-              <span>
-                <span className="font-medium">{kindLabel[k]}</span>
-                <span className="block text-xs text-muted-foreground">
-                  {k === "open" ? "Bäddar, pallkragar och odlingslotter" : "Oeldat växthus eller tunnel"}
-                </span>
-              </span>
-            </Label>
-          ))}
-        </RadioGroup>
-      </div>
-      <div className="space-y-2">
-        <p className="text-sm font-medium">Odlingszon</p>
-        <p className="text-sm text-muted-foreground">
-          Vet du inte vilken zon platsen har? Kolla på{" "}
-          <a
-            href="https://zonkartan.se/"
-            target="_blank"
-            rel="noreferrer"
-            className="text-primary underline underline-offset-4"
-          >
-            zonkartan.se
-          </a>
-          .
-        </p>
-        <RadioGroup
-          value={props.zone === null ? "" : String(props.zone)}
-          onValueChange={(v) => props.onZone(Number(v) as Zone)}
-          className="grid gap-2 sm:grid-cols-2"
-        >
-          {ZONES.map((z) => (
-            <Label key={z.zone} className={radioCard}>
-              <RadioGroupItem value={String(z.zone)} className="mt-0.5" />
-              <span>
-                <span className="font-medium">{z.label}</span>
-                <span className="block text-xs text-muted-foreground">{z.examples}</span>
-              </span>
-            </Label>
-          ))}
-        </RadioGroup>
-      </div>
-    </div>
-  );
-}
+import { frostHint, placeLabel, seasonYear, useCreateSeason, useGardens, useSeasons } from "@/lib/garden";
 
 const NEW = "new";
 
@@ -176,7 +30,7 @@ export function SetupPage() {
   // null until the user changes them: then we suggest last year's crops at the place.
   const [cropIds, setCropIds] = useState<string[] | null>(null);
 
-  if (gardens.isPending || seasons.isPending) return <p className="text-muted-foreground">Laddar…</p>;
+  if (gardens.isPending || seasons.isPending) return <SlowLoading loading />;
   if (gardens.isError || seasons.isError) return <ErrorAlert>Kunde inte hämta dina uppgifter.</ErrorAlert>;
 
   // A place has at most one list per year, so only places without one this year can be picked.
@@ -212,9 +66,7 @@ export function SetupPage() {
 
   return (
     <div className="space-y-6">
-      <p className="text-sm text-muted-foreground">
-        Steg {step} av 3 · Odlingsår {seasonYear}
-      </p>
+      <PageHeader title="Planera säsongen" description={`Steg ${step} av 3 · Odlingsår ${seasonYear}`} />
 
       {step === 1 && (
         <section className="space-y-4">

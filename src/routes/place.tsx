@@ -2,13 +2,19 @@ import { useState } from "react";
 import { Link, useNavigate, useParams } from "@tanstack/react-router";
 import { guessLastFrost } from "@shared/zones";
 import { ConfirmButton } from "@/components/confirm-button";
+import { CropChips } from "@/components/crop-chips";
+import { ErrorAlert } from "@/components/error-alert";
 import { PageHeader } from "@/components/page-header";
+import { PlaceFields } from "@/components/place-fields";
+import { SlowLoading } from "@/components/slow-loading";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatDay } from "@/lib/format";
 import {
+  frostHint,
   isOpen,
+  placeLabel,
   useDeleteGarden,
   useGardens,
   useSeasons,
@@ -18,8 +24,6 @@ import {
   type Garden,
   type Season,
 } from "@/lib/garden";
-import { CropChips } from "./crops";
-import { ErrorAlert, frostHint, PlaceFields, placeLabel } from "./setup";
 
 function FrostSection({ season }: { season: Season }) {
   const setLastFrost = useSetLastFrost();
@@ -34,7 +38,7 @@ function FrostSection({ season }: { season: Season }) {
 
   return (
     <div>
-      <h3 className="mb-1 font-semibold">När är det frostfritt {season.year}?</h3>
+      <h3 className="mb-1 text-lg font-semibold">När är det frostfritt {season.year}?</h3>
       <p className="mb-3 text-sm text-muted-foreground">
         {season.last_frost && season.last_frost !== guess
           ? `Du har satt frostfritt från ${formatDay(lastFrost)}. Vi gissade ${formatDay(guess)}. `
@@ -141,7 +145,7 @@ export function PlacePage() {
   const deleteGarden = useDeleteGarden();
   const [editing, setEditing] = useState(false);
 
-  if (gardens.isPending || seasons.isPending) return <p className="text-muted-foreground">Laddar…</p>;
+  if (gardens.isPending || seasons.isPending) return <SlowLoading loading />;
   if (gardens.isError || seasons.isError) return <ErrorAlert>Kunde inte hämta dina uppgifter.</ErrorAlert>;
   const garden = gardens.data.find((g) => g.id === gardenId);
   if (!garden) return <ErrorAlert>Hittade inte odlingsplatsen.</ErrorAlert>;

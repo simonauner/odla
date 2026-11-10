@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react";
+import { PageHeader } from "@/components/page-header";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,7 +45,7 @@ export function LoginPage() {
   if (checkEmail) {
     return (
       <div className="mx-auto max-w-sm space-y-3">
-        <h2 className="text-lg font-semibold">Kolla din mejl</h2>
+        <PageHeader title="Kolla din mejl" />
         <p>Vi har skickat en bekräftelselänk till {email}. Klicka på den och logga sedan in här.</p>
         <Button
           variant="link"
@@ -62,7 +63,7 @@ export function LoginPage() {
 
   return (
     <form onSubmit={submit} className="mx-auto max-w-sm space-y-4">
-      <h2 className="text-lg font-semibold">{mode === "signIn" ? "Logga in" : "Skapa konto"}</h2>
+      <PageHeader title={mode === "signIn" ? "Logga in" : "Skapa konto"} />
       <div className="space-y-2">
         <Label htmlFor="email">E-post</Label>
         <Input

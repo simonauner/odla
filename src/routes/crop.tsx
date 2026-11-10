@@ -4,13 +4,19 @@ import { findCrop } from "@shared/crops";
 import { cropSpan, planSeason } from "@shared/season";
 import { guessLastFrost } from "@shared/zones";
 import { ConfirmButton } from "@/components/confirm-button";
+import { ErrorAlert } from "@/components/error-alert";
 import { PageHeader } from "@/components/page-header";
+import { radioCard } from "@/components/place-fields";
+import { TaskList } from "@/components/task-list";
+import { SlowLoading } from "@/components/slow-loading";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { formatSpan } from "@/lib/format";
 import {
+  needsGreenhouse,
+  placeLabel,
   seasonTarget,
   useGardens,
   useMovePlanting,
@@ -19,8 +25,6 @@ import {
   useUpdatePlantings,
   type Season,
 } from "@/lib/garden";
-import { TaskList } from "./plan";
-import { ErrorAlert, needsGreenhouse, placeLabel, radioCard } from "./setup";
 
 /** Moves the crop to another place the same year. Places that already grow it that year are left out. */
 function MoveCrop({ season, planting }: { season: Season; planting: Season["plantings"][number] }) {
@@ -95,7 +99,7 @@ export function CropPage() {
   const update = useUpdatePlantings();
   const remove = useRemoveCrop();
 
-  if (seasons.isPending) return <p className="text-muted-foreground">Laddar…</p>;
+  if (seasons.isPending) return <SlowLoading loading />;
   if (seasons.isError) return <ErrorAlert>Kunde inte hämta grödan.</ErrorAlert>;
   const season = seasons.data.find((s) => s.plantings.some((p) => p.id === plantingId));
   const planting = season?.plantings.find((p) => p.id === plantingId);

@@ -1,12 +1,15 @@
 import { useState } from "react";
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { CROPS } from "@shared/crops";
+import { CropToggles } from "@/components/crop-toggles";
+import { ErrorAlert } from "@/components/error-alert";
 import { PageHeader } from "@/components/page-header";
+import { radioCard } from "@/components/place-fields";
+import { SlowLoading } from "@/components/slow-loading";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { seasonTarget, seasonYear, useAddCrops, useGardens, useSeasons } from "@/lib/garden";
-import { CropToggles, ErrorAlert, placeLabel, radioCard } from "./setup";
+import { placeLabel, seasonTarget, seasonYear, useAddCrops, useGardens, useSeasons } from "@/lib/garden";
 
 /** Adds crops for a year at one of the user's places. `?plats=` picks the place up front. */
 export function AddCropsPage() {
@@ -19,7 +22,7 @@ export function AddCropsPage() {
   const [year, setYear] = useState(seasonYear);
   const [cropIds, setCropIds] = useState<string[]>([]);
 
-  if (gardens.isPending || seasons.isPending) return <p className="text-muted-foreground">Laddar…</p>;
+  if (gardens.isPending || seasons.isPending) return <SlowLoading loading />;
   if (gardens.isError || seasons.isError) return <ErrorAlert>Kunde inte hämta dina uppgifter.</ErrorAlert>;
 
   const garden = gardens.data.find((g) => g.id === gardenChoice) ?? gardens.data[0];
