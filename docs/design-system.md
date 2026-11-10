@@ -63,7 +63,7 @@ Lägg till fler med `npx shadcn@latest add <namn>` när de behövs, och lägg in
 
 ## Typografi och mellanrum
 
-- Typsnitt: Geist (variabelt) för brödtext via `font-sans`. Fraunces (variabel serif) för rubriker via `font-heading`; `CardTitle` använder den automatiskt.
+- Typsnitt: Geist (variabelt) för brödtext via `font-sans`. Fraunces (variabel serif) för sid- och sektionsrubriker via `font-heading`. `CardTitle` är Geist i `font-semibold`, eftersom serif blir svårläst i liten storlek.
 - Varje sida har exakt en `h1`, och det är `PageHeader` (`font-heading text-3xl font-semibold`). Undantag är startsidans hero-yta, där rubriken är en egen `h1`: hälsningen i `font-heading text-4xl font-semibold sm:text-5xl`, det tomma läget i `font-heading text-3xl font-semibold`.
 - Sektionsrubrik: `<h2 className="font-heading text-2xl font-semibold">`.
 - Fråga eller steg i ett formulär (som i `setup.tsx`): `<h2 className="text-lg font-semibold">`, eller `h3` om den ligger under en sektionsrubrik.
