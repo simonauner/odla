@@ -166,7 +166,7 @@ function TaskRow({ task }: { task: Task }) {
   );
 }
 
-function TaskList({ tasks }: { tasks: Task[] }) {
+export function TaskList({ tasks }: { tasks: Task[] }) {
   return (
     <ul className="space-y-2">
       {tasks.map((t) => (
