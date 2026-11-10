@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate, useParams } from "@tanstack/react-router";
 import { guessLastFrost } from "@shared/zones";
 import { ConfirmButton } from "@/components/confirm-button";
+import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -102,26 +103,18 @@ function SeasonSection({ season }: { season: Season }) {
 }
 
 /** Renames the place or changes its kind or zone. */
-function EditPlace({ garden }: { garden: Garden }) {
+function EditPlace({ garden, onClose }: { garden: Garden; onClose: () => void }) {
   const update = useUpdateGarden();
-  const [open, setOpen] = useState(false);
   const [name, setName] = useState(garden.name);
   const [kind, setKind] = useState(garden.kind);
   const [zone, setZone] = useState(garden.zone);
-
-  if (!open)
-    return (
-      <Button variant="outline" onClick={() => setOpen(true)}>
-        Ändra platsen
-      </Button>
-    );
 
   return (
     <form
       className="space-y-4"
       onSubmit={(e) => {
         e.preventDefault();
-        update.mutate({ id: garden.id, name: name.trim(), kind, zone }, { onSuccess: () => setOpen(false) });
+        update.mutate({ id: garden.id, name: name.trim(), kind, zone }, { onSuccess: onClose });
       }}
     >
       <h2 className="font-heading text-2xl font-semibold">Ändra platsen</h2>
@@ -130,7 +123,7 @@ function EditPlace({ garden }: { garden: Garden }) {
         <Button type="submit" disabled={name.trim() === "" || update.isPending}>
           Spara
         </Button>
-        <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+        <Button type="button" variant="outline" onClick={onClose}>
           Avbryt
         </Button>
       </div>
@@ -146,6 +139,7 @@ export function PlacePage() {
   const gardens = useGardens();
   const seasons = useSeasons();
   const deleteGarden = useDeleteGarden();
+  const [editing, setEditing] = useState(false);
 
   if (gardens.isPending || seasons.isPending) return <p className="text-muted-foreground">Laddar…</p>;
   if (gardens.isError || seasons.isError) return <ErrorAlert>Kunde inte hämta dina uppgifter.</ErrorAlert>;
@@ -156,10 +150,32 @@ export function PlacePage() {
 
   return (
     <div className="space-y-10">
-      <div>
-        <h1 className="font-heading text-3xl font-semibold">{garden.name}</h1>
-        <p className="text-muted-foreground">{placeLabel(garden)}</p>
+      <div className="space-y-3">
+        <PageHeader
+          title={garden.name}
+          description={placeLabel(garden)}
+          actions={
+            <>
+              <Button variant="outline" disabled={editing} onClick={() => setEditing(true)}>
+                Ändra platsen
+              </Button>
+              <ConfirmButton
+                title={`Ta bort ${garden.name}?`}
+                description="Alla säsonger, grödor och anteckningar för platsen försvinner och går inte att få tillbaka."
+                action="Ta bort"
+                onConfirm={() =>
+                  deleteGarden.mutateAsync(garden.id, { onSuccess: () => navigate({ to: "/odlingar" }) })
+                }
+              >
+                Ta bort platsen
+              </ConfirmButton>
+            </>
+          }
+        />
+        {deleteGarden.isError && <ErrorAlert>Kunde inte ta bort platsen.</ErrorAlert>}
       </div>
+
+      {editing && <EditPlace key={garden.id} garden={garden} onClose={() => setEditing(false)} />}
 
       {current.length === 0 && <p className="text-muted-foreground">Inget växer här just nu.</p>}
       {current.map((s) => (
@@ -172,20 +188,6 @@ export function PlacePage() {
             Lägg till grödor här
           </Link>
         </Button>
-      </div>
-
-      <EditPlace key={garden.id} garden={garden} />
-
-      <div>
-        <ConfirmButton
-          title={`Ta bort ${garden.name}?`}
-          description="Alla säsonger, grödor och anteckningar för platsen försvinner och går inte att få tillbaka."
-          action="Ta bort"
-          onConfirm={() => deleteGarden.mutateAsync(garden.id, { onSuccess: () => navigate({ to: "/odlingar" }) })}
-        >
-          Ta bort platsen
-        </ConfirmButton>
-        {deleteGarden.isError && <ErrorAlert>Kunde inte ta bort platsen.</ErrorAlert>}
       </div>
     </div>
   );
