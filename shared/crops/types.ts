@@ -34,6 +34,8 @@ export interface CropStep {
 export interface CropTemplate {
   id: string;
   name: string;
+  /** Symbol shown next to the name on crop cards. */
+  emoji: string;
   /** Lägsta zon (I = 1) där grödan normalt lyckas på friland/i växthus enligt mallen. */
   zones: { min: number; max: number };
   steps: CropStep[];

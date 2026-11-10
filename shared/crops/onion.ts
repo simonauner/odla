@@ -3,6 +3,7 @@ import type { CropTemplate } from "./types";
 export const onion: CropTemplate = {
   id: "onion",
   name: "Lök",
+  emoji: "🧅",
   zones: { min: 1, max: 7 },
   steps: [
     {
