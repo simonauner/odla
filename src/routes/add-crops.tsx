@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { CROPS } from "@shared/crops";
+import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -39,7 +40,7 @@ export function AddCropsPage() {
 
   return (
     <div className="space-y-8">
-      <h1 className="font-heading text-3xl font-semibold">Lägg till grödor</h1>
+      <PageHeader title="Lägg till grödor" />
 
       <section className="space-y-2">
         <h2 className="text-lg font-semibold">Var?</h2>
