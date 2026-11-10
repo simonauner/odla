@@ -42,11 +42,6 @@
                 class="inline-flex h-11 items-center rounded-lg bg-primary px-5 font-medium text-primary-foreground hover:bg-primary/80"
                 >Kom igång</a
               >
-              <a
-                href="/app"
-                class="inline-flex h-11 items-center rounded-lg px-5 font-medium text-primary hover:bg-muted"
-                >Jag har redan ett konto</a
-              >
             </div>
           </div>
           <img
@@ -115,20 +110,12 @@
         </section>
 
         <section class="py-10 text-center">
-          <h2 class="font-heading text-3xl font-semibold">Tolv grödor att börja med</h2>
+          <h2 class="font-heading text-3xl font-semibold">
+            <!--crop-count-->
+            grödor att börja med
+          </h2>
           <ul class="mx-auto mt-6 flex max-w-2xl flex-wrap justify-center gap-2">
-            <li class="rounded-full bg-secondary px-4 py-1.5 font-medium text-secondary-foreground">Tomat</li>
-            <li class="rounded-full bg-secondary px-4 py-1.5 font-medium text-secondary-foreground">Chili</li>
-            <li class="rounded-full bg-secondary px-4 py-1.5 font-medium text-secondary-foreground">Gurka</li>
-            <li class="rounded-full bg-secondary px-4 py-1.5 font-medium text-secondary-foreground">Squash</li>
-            <li class="rounded-full bg-secondary px-4 py-1.5 font-medium text-secondary-foreground">Basilika</li>
-            <li class="rounded-full bg-secondary px-4 py-1.5 font-medium text-secondary-foreground">Sallat</li>
-            <li class="rounded-full bg-secondary px-4 py-1.5 font-medium text-secondary-foreground">Rädisa</li>
-            <li class="rounded-full bg-secondary px-4 py-1.5 font-medium text-secondary-foreground">Morot</li>
-            <li class="rounded-full bg-secondary px-4 py-1.5 font-medium text-secondary-foreground">Lök</li>
-            <li class="rounded-full bg-secondary px-4 py-1.5 font-medium text-secondary-foreground">Potatis</li>
-            <li class="rounded-full bg-secondary px-4 py-1.5 font-medium text-secondary-foreground">Ärter</li>
-            <li class="rounded-full bg-secondary px-4 py-1.5 font-medium text-secondary-foreground">Brytbönor</li>
+            <!--crop-list-->
           </ul>
         </section>
 
@@ -145,7 +132,20 @@
         </section>
       </main>
 
-      <footer class="border-t border-border py-8 text-sm text-muted-foreground">Grodla</footer>
+      <footer class="flex flex-wrap justify-between gap-2 border-t border-border py-8 text-sm text-muted-foreground">
+        <p>
+          ©
+          <!--year-->
+          Grodla ·
+          <a href="https://hackskaduha.se" class="underline-offset-4 hover:text-foreground hover:underline"
+            >Hack ska du ha AB</a
+          >
+        </p>
+        <p>
+          Version
+          <!--version-->
+        </p>
+      </footer>
     </div>
   </body>
 </html>
