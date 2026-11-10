@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { findCrop } from "@shared/crops";
+import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -88,14 +89,21 @@ export function CropsPage() {
 
   return (
     <div className="space-y-10">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="font-heading text-3xl font-semibold">Odlingar</h1>
-        {gardens.data.length > 0 && (
-          <Button asChild>
-            <Link to="/odlingar/ny">Lägg till grödor</Link>
-          </Button>
-        )}
-      </div>
+      <PageHeader
+        title="Odlingar"
+        actions={
+          gardens.data.length > 0 && (
+            <>
+              <Button asChild variant="outline">
+                <Link to="/setup">Lägg till plats</Link>
+              </Button>
+              <Button asChild>
+                <Link to="/odlingar/ny">Lägg till grödor</Link>
+              </Button>
+            </>
+          )
+        }
+      />
 
       {gardens.data.length === 0 ? (
         <div className="space-y-3">
@@ -126,7 +134,7 @@ export function CropsPage() {
       {gardens.data.length > 0 && (
         <section>
           <h2 className="mb-3 font-heading text-2xl font-semibold">Platser</h2>
-          <ul className="mb-4 grid gap-2 sm:grid-cols-2">
+          <ul className="grid gap-2 sm:grid-cols-2">
             {gardens.data.map((g) => (
               <li key={g.id}>
                 <Card size="sm" className="relative has-[a:focus-visible]:ring-2 has-[a:focus-visible]:ring-ring">
@@ -147,9 +155,6 @@ export function CropsPage() {
               </li>
             ))}
           </ul>
-          <Button asChild variant="outline">
-            <Link to="/setup">Lägg till plats</Link>
-          </Button>
         </section>
       )}
     </div>

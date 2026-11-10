@@ -4,6 +4,7 @@ import { findCrop } from "@shared/crops";
 import { cropSpan, planSeason } from "@shared/season";
 import { guessLastFrost } from "@shared/zones";
 import { ConfirmButton } from "@/components/confirm-button";
+import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -109,17 +110,43 @@ export function CropPage() {
 
   return (
     <div className="space-y-10">
-      <div>
-        <h1 className="flex items-center gap-2 font-heading text-3xl font-semibold">
-          {name} {season.year}
-          {planting.closed_at && <Badge variant="secondary">Avslutad</Badge>}
-        </h1>
-        <p className="text-muted-foreground">
-          <Link to="/plats/$gardenId" params={{ gardenId: season.garden.id }} className="hover:underline">
-            {season.garden.name}
-          </Link>
-          {span && ` · ${formatSpan(span.start, span.end)}`}
-        </p>
+      <div className="space-y-3">
+        <PageHeader
+          title={
+            <>
+              {name} {season.year}
+              {planting.closed_at && <Badge variant="secondary">Avslutad</Badge>}
+            </>
+          }
+          description={
+            <>
+              <Link to="/plats/$gardenId" params={{ gardenId: season.garden.id }} className="hover:underline">
+                {season.garden.name}
+              </Link>
+              {span && ` · ${formatSpan(span.start, span.end)}`}
+            </>
+          }
+          actions={
+            <>
+              <Button
+                variant="outline"
+                disabled={update.isPending}
+                onClick={() => update.mutate({ plantingIds: [planting.id], closed: !planting.closed_at })}
+              >
+                {planting.closed_at ? "Öppna igen" : "Avsluta grödan"}
+              </Button>
+              <ConfirmButton
+                title={`Ta bort ${name.toLowerCase()} ${season.year} från ${season.garden.name}?`}
+                description="Det du har bockat av och antecknat för grödan försvinner och går inte att få tillbaka."
+                action="Ta bort"
+                onConfirm={() => remove.mutateAsync(planting.id, { onSuccess: () => navigate({ to: "/odlingar" }) })}
+              >
+                Ta bort
+              </ConfirmButton>
+            </>
+          }
+        />
+        {(update.isError || remove.isError) && <ErrorAlert>Kunde inte spara grödan.</ErrorAlert>}
       </div>
 
       <section>
@@ -128,25 +155,6 @@ export function CropPage() {
       </section>
 
       <MoveCrop key={season.id} season={season} planting={planting} />
-
-      <div className="flex flex-wrap gap-2">
-        <Button
-          variant="outline"
-          disabled={update.isPending}
-          onClick={() => update.mutate({ plantingIds: [planting.id], closed: !planting.closed_at })}
-        >
-          {planting.closed_at ? "Öppna igen" : "Avsluta grödan"}
-        </Button>
-        <ConfirmButton
-          title={`Ta bort ${name.toLowerCase()} ${season.year} från ${season.garden.name}?`}
-          description="Det du har bockat av och antecknat för grödan försvinner och går inte att få tillbaka."
-          action="Ta bort"
-          onConfirm={() => remove.mutateAsync(planting.id, { onSuccess: () => navigate({ to: "/odlingar" }) })}
-        >
-          Ta bort
-        </ConfirmButton>
-      </div>
-      {(update.isError || remove.isError) && <ErrorAlert>Kunde inte spara grödan.</ErrorAlert>}
     </div>
   );
 }
