@@ -39,6 +39,14 @@ function Root() {
         )}
       </header>
       {isPublic ? <Outlet /> : session === undefined ? null : session === null ? <LoginPage /> : <Outlet />}
+      <footer className="mt-12 flex gap-4 border-t border-border pt-6 text-sm text-muted-foreground">
+        <Link to="/villkor" className={navLink}>
+          Användarvillkor
+        </Link>
+        <Link to="/integritet" className={navLink}>
+          Integritetspolicy
+        </Link>
+      </footer>
     </div>
   );
 }
