@@ -3,6 +3,7 @@ import type { CropTemplate } from "./types";
 export const pea: CropTemplate = {
   id: "pea",
   name: "Ärter",
+  emoji: "🫛",
   zones: { min: 1, max: 8 },
   steps: [
     {

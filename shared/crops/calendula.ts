@@ -3,6 +3,7 @@ import type { CropTemplate } from "./types";
 export const calendula: CropTemplate = {
   id: "calendula",
   name: "Ringblomma",
+  emoji: "🌼",
   zones: { min: 1, max: 8 },
   steps: [
     {

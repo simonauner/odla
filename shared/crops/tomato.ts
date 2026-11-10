@@ -3,6 +3,7 @@ import type { CropTemplate } from "./types";
 export const tomato: CropTemplate = {
   id: "tomato",
   name: "Tomat",
+  emoji: "🍅",
   zones: { min: 1, max: 6 },
   steps: [
     {

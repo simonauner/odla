@@ -114,6 +114,7 @@ describe("felaktiga mallar", () => {
     const broken: CropTemplate = {
       id: "broken",
       name: "Trasig",
+      emoji: "🌱",
       zones: { min: 1, max: 8 },
       steps: [
         { id: "a", kind: "sow_indoor", title: "A", anchor: { type: "step", step: "b" }, window: [0, 0] },

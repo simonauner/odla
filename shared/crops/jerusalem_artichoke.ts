@@ -3,6 +3,7 @@ import type { CropTemplate } from "./types";
 export const jerusalemArtichoke: CropTemplate = {
   id: "jerusalem_artichoke",
   name: "Jordärtskocka",
+  emoji: "🥔",
   zones: { min: 1, max: 7 },
   steps: [
     {

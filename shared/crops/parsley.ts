@@ -3,6 +3,7 @@ import type { CropTemplate } from "./types";
 export const parsley: CropTemplate = {
   id: "parsley",
   name: "Persilja",
+  emoji: "🌿",
   zones: { min: 1, max: 8 },
   steps: [
     {
