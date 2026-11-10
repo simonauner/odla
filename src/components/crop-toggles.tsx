@@ -33,7 +33,7 @@ export function CropToggles(props: {
               pressed={props.isSelected(c.id)}
               disabled={props.disabled}
               onPressedChange={() => props.onToggle(c.id)}
-              className="rounded-full px-4"
+              shape="pill"
             >
               {c.name}
               {outsideZone && <Badge variant="warning">Kräver växthus</Badge>}
