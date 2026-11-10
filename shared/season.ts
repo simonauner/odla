@@ -8,6 +8,8 @@ export interface LoggedStep {
   status: string;
   done_on: IsoDate;
   note?: string | null;
+  /** Who logged it, when the account is shared. */
+  by?: { id: string; display_name: string | null } | null;
 }
 
 export interface SeasonPlanting {

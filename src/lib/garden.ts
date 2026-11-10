@@ -58,7 +58,7 @@ export function useSeasons() {
         await supabase
           .from("seasons")
           .select(
-            "id, year, last_frost, garden:gardens!inner(id, name, zone, kind), plantings(id, crop_id, closed_at, remind_on, created_at, task_logs(step_key, status, done_on, note))",
+            "id, year, last_frost, garden:gardens!inner(id, name, zone, kind), plantings(id, crop_id, closed_at, remind_on, created_at, task_logs(step_key, status, done_on, note, by:profiles!logged_by(id, display_name)))",
           )
           .order("year")
           .order("created_at"),
