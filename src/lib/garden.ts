@@ -77,7 +77,7 @@ export function isOpen(season: Season): boolean {
 export interface NewSeason {
   /** An existing place, or a new one to create. */
   garden: { id: string } | { name: string; zone: Zone; kind: GardenKind };
-  lastFrost: string;
+  lastFrost: string | null;
   cropIds: string[];
 }
 

@@ -57,7 +57,8 @@ export function SetupPage() {
     create.mutate(
       {
         garden: existing ? { id: existing.id } : { name: name.trim(), zone: place.zone, kind: place.kind },
-        lastFrost: frost,
+        // Only a date the user chose is stored, so the guess follows later changes to the place.
+        lastFrost: frost === guess ? null : frost,
         cropIds: crops,
       },
       { onSuccess: () => navigate({ to: "/" }) },
