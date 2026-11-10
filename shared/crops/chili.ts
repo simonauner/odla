@@ -9,9 +9,11 @@ export const chili: CropTemplate = {
       id: "sow",
       kind: "sow_indoor",
       title: "Förså chili inomhus",
-      description: "Så 0,5 cm djupt i fuktig såjord. Chili gror långsamt och vill ha 25–28 °C, gärna med värmematta.",
+      description:
+        "Så 0,5 cm djupt i fuktig såjord. Chili gror långsamt och vill ha 25–28 °C, gärna med värmematta, och växtbelysning så här tidigt. Starka sorter som habanero först.",
       anchor: { type: "last_frost" },
-      window: [-84, -70],
+      // Chili needs 5+ months from sowing to ripe fruit; sowing around New Year is the norm in Mälardalen.
+      window: [-150, -110],
     },
     {
       id: "pot_up",
