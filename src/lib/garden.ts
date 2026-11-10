@@ -147,33 +147,78 @@ export function useDeleteGarden() {
 }
 
 /**
- * Adds a crop to a place for a season. Creates the place's season for that year first if it has none,
- * with last year's frost date moved to this year when there was one.
+ * Where crops for a place and year go: the place's season that year, or, for a season still to be created,
+ * last year's frost date at the place moved to that year.
  */
-export function useAddCrop() {
+export function seasonTarget(seasons: Season[], gardenId: string, year: number) {
+  const season = seasons.find((s) => s.garden.id === gardenId && s.year === year);
+  const previous = seasons.findLast((s) => s.garden.id === gardenId && s.year < year && s.last_frost);
+  return {
+    gardenId,
+    year,
+    season,
+    lastFrost: season ? season.last_frost : previous ? `${year}${previous.last_frost!.slice(4)}` : null,
+  };
+}
+
+type SeasonTarget = ReturnType<typeof seasonTarget>;
+
+/** The target's season id, creating the season first if the place has none that year. */
+async function seasonIdFor(userId: string, t: SeasonTarget): Promise<string> {
+  if (t.season) return t.season.id;
+  return unwrap(
+    await supabase
+      .from("seasons")
+      .insert({ user_id: userId, garden_id: t.gardenId, year: t.year, last_frost: t.lastFrost })
+      .select("id")
+      .single(),
+  ).id;
+}
+
+/** Adds crops to a place for a season, creating the place's season for that year first if it has none. */
+export function useAddCrops() {
   const userId = useUserId();
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (args: {
-      gardenId: string;
-      year: number;
-      cropId: string;
-      seasonId?: string;
-      lastFrost?: string | null;
-    }) => {
+    mutationFn: async ({ target, cropIds }: { target: SeasonTarget; cropIds: string[] }) => {
       // shortcut: two requests without a transaction, so a failure can leave an empty season behind; it shows no crops and does no harm.
-      const seasonId =
-        args.seasonId ??
-        unwrap(
-          await supabase
-            .from("seasons")
-            .insert({ user_id: userId, garden_id: args.gardenId, year: args.year, last_frost: args.lastFrost ?? null })
-            .select("id")
-            .single(),
-        ).id;
-      unwrap(await supabase.from("plantings").insert({ season_id: seasonId, user_id: userId, crop_id: args.cropId }));
+      const seasonId = await seasonIdFor(userId, target);
+      unwrap(
+        await supabase
+          .from("plantings")
+          .insert(cropIds.map((crop_id) => ({ season_id: seasonId, user_id: userId, crop_id }))),
+      );
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["seasons", userId] }),
+  });
+}
+
+/** Moves a crop, with everything logged for it, to another place's season. */
+export function useMovePlanting() {
+  const userId = useUserId();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ plantingId, target }: { plantingId: string; target: SeasonTarget }) => {
+      const seasonId = await seasonIdFor(userId, target);
+      unwrap(await supabase.from("plantings").update({ season_id: seasonId }).eq("id", plantingId));
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["seasons", userId] }),
+  });
+}
+
+/** Renames a place or changes its zone or kind. Its crops' dates follow on the next render. */
+export function useUpdateGarden() {
+  const userId = useUserId();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...change }: { id: string; name: string; zone: Zone; kind: GardenKind }) => {
+      unwrap(await supabase.from("gardens").update(change).eq("id", id));
+    },
+    onSuccess: () =>
+      Promise.all([
+        qc.invalidateQueries({ queryKey: ["gardens", userId] }),
+        qc.invalidateQueries({ queryKey: ["seasons", userId] }),
+      ]),
   });
 }
 

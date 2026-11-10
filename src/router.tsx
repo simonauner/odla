@@ -1,8 +1,10 @@
 import { Link, Outlet, createRootRoute, createRoute, createRouter } from "@tanstack/react-router";
 import { useSession } from "./lib/auth";
 import { LoginPage } from "./routes/login";
+import { AddCropsPage } from "./routes/add-crops";
+import { CropPage } from "./routes/crop";
+import { CropsPage } from "./routes/crops";
 import { PlacePage } from "./routes/place";
-import { PlacesPage } from "./routes/places";
 import { PlanPage } from "./routes/plan";
 import { ProfilePage } from "./routes/profile";
 import { SetupPage } from "./routes/setup";
@@ -22,8 +24,8 @@ function Root() {
             <Link to="/" className={navLink}>
               Min plan
             </Link>
-            <Link to="/platser" className={navLink}>
-              Odlingsplatser
+            <Link to="/odlingar" className={navLink}>
+              Odlingar
             </Link>
             <Link to="/profil" className={navLink}>
               Profil
@@ -41,7 +43,15 @@ const rootRoute = createRootRoute({ component: Root });
 const routeTree = rootRoute.addChildren([
   createRoute({ getParentRoute: () => rootRoute, path: "/", component: PlanPage }),
   createRoute({ getParentRoute: () => rootRoute, path: "/setup", component: SetupPage }),
-  createRoute({ getParentRoute: () => rootRoute, path: "/platser", component: PlacesPage }),
+  createRoute({ getParentRoute: () => rootRoute, path: "/odlingar", component: CropsPage }),
+  createRoute({
+    getParentRoute: () => rootRoute,
+    path: "/odlingar/ny",
+    component: AddCropsPage,
+    validateSearch: (search: Record<string, unknown>): { plats?: string } =>
+      typeof search.plats === "string" ? { plats: search.plats } : {},
+  }),
+  createRoute({ getParentRoute: () => rootRoute, path: "/odling/$plantingId", component: CropPage }),
   createRoute({ getParentRoute: () => rootRoute, path: "/plats/$gardenId", component: PlacePage }),
   createRoute({ getParentRoute: () => rootRoute, path: "/profil", component: ProfilePage }),
 ]);
