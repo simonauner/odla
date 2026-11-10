@@ -13,6 +13,7 @@
     "preview": "npm run build && vite preview",
     "deploy": "npm run build && wrangler deploy",
     "test": "vitest run",
+    "test:db": "supabase test db",
     "typecheck": "tsc -b",
     "cf-typegen": "wrangler types",
     "lint": "oxlint --deny-warnings",

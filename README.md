@@ -15,6 +15,7 @@ Planera, följ upp och utvärdera din odling. Du väljer odlingszon och vad du v
 npm install
 npm run dev      # http://localhost:5173 – Vite + Workers-runtime lokalt
 npm test         # vitest: planmotor och API
+npm run test:db  # pgTAP: who sees what in shared accounts (needs local Supabase running)
 npm run build    # typkontroll + bygge till dist/
 npm run deploy   # manuell deploy till Cloudflare (kräver `npx wrangler login`); normalt sköter CI det
 ```
