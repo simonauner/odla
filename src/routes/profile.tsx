@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useSession } from "@/lib/auth";
@@ -14,7 +15,7 @@ export function ProfilePage() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-lg font-semibold">Profil</h2>
+      <PageHeader title="Profil" />
       <Card>
         <CardContent>
           <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-3 text-sm">

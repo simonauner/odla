@@ -3,6 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { guessLastFrost, type GardenKind, type Zone } from "@shared/zones";
 import { CropToggles } from "@/components/crop-toggles";
 import { ErrorAlert } from "@/components/error-alert";
+import { PageHeader } from "@/components/page-header";
 import { PlaceFields, radioCard } from "@/components/place-fields";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -64,9 +65,7 @@ export function SetupPage() {
 
   return (
     <div className="space-y-6">
-      <p className="text-sm text-muted-foreground">
-        Steg {step} av 3 · Odlingsår {seasonYear}
-      </p>
+      <PageHeader title="Planera säsongen" description={`Steg ${step} av 3 · Odlingsår ${seasonYear}`} />
 
       {step === 1 && (
         <section className="space-y-4">

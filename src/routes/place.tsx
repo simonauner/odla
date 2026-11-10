@@ -37,7 +37,7 @@ function FrostSection({ season }: { season: Season }) {
 
   return (
     <div>
-      <h3 className="mb-1 font-semibold">När är det frostfritt {season.year}?</h3>
+      <h3 className="mb-1 text-lg font-semibold">När är det frostfritt {season.year}?</h3>
       <p className="mb-3 text-sm text-muted-foreground">
         {season.last_frost && season.last_frost !== guess
           ? `Du har satt frostfritt från ${formatDay(lastFrost)}. Vi gissade ${formatDay(guess)}. `
