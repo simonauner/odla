@@ -1,5 +1,6 @@
-import { Link, Outlet, createRootRoute, createRoute, createRouter } from "@tanstack/react-router";
+import { Link, Outlet, createRootRoute, createRoute, createRouter, useRouterState } from "@tanstack/react-router";
 import { useSession } from "./lib/auth";
+import { PrivacyPage, TermsPage } from "./routes/legal";
 import { LoginPage } from "./routes/login";
 import { AddCropsPage } from "./routes/add-crops";
 import { CropPage } from "./routes/crop";
@@ -13,6 +14,10 @@ const navLink = "hover:text-foreground [&.active]:font-semibold [&.active]:text-
 
 function Root() {
   const session = useSession();
+  // The legal pages must be readable before signing up.
+  const isPublic = useRouterState({
+    select: (s) => s.matches.some((m) => m.routeId === "/integritet" || m.routeId === "/villkor"),
+  });
   return (
     <div className="mx-auto max-w-3xl px-4 py-6">
       <header className="mb-8 flex flex-wrap items-center justify-between gap-2">
@@ -33,7 +38,15 @@ function Root() {
           </nav>
         )}
       </header>
-      {session === undefined ? null : session === null ? <LoginPage /> : <Outlet />}
+      {isPublic ? <Outlet /> : session === undefined ? null : session === null ? <LoginPage /> : <Outlet />}
+      <footer className="mt-12 flex gap-4 border-t border-border pt-6 text-sm text-muted-foreground">
+        <Link to="/villkor" className={navLink}>
+          Användarvillkor
+        </Link>
+        <Link to="/integritet" className={navLink}>
+          Integritetspolicy
+        </Link>
+      </footer>
     </div>
   );
 }
@@ -54,6 +67,8 @@ const routeTree = rootRoute.addChildren([
   createRoute({ getParentRoute: () => rootRoute, path: "/odling/$plantingId", component: CropPage }),
   createRoute({ getParentRoute: () => rootRoute, path: "/plats/$gardenId", component: PlacePage }),
   createRoute({ getParentRoute: () => rootRoute, path: "/profil", component: ProfilePage }),
+  createRoute({ getParentRoute: () => rootRoute, path: "/integritet", component: PrivacyPage }),
+  createRoute({ getParentRoute: () => rootRoute, path: "/villkor", component: TermsPage }),
 ]);
 
 export const router = createRouter({ routeTree, basepath: "/app" });

@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react";
+import { Link } from "@tanstack/react-router";
 import { PageHeader } from "@/components/page-header";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -91,6 +92,19 @@ export function LoginPage() {
         <Alert variant="destructive">
           <AlertDescription>{error}</AlertDescription>
         </Alert>
+      )}
+      {mode === "signUp" && (
+        <p className="text-sm text-muted-foreground">
+          Genom att skapa konto godkänner du våra{" "}
+          <Link to="/villkor" className="text-primary underline underline-offset-4">
+            användarvillkor
+          </Link>{" "}
+          och bekräftar att du har läst vår{" "}
+          <Link to="/integritet" className="text-primary underline underline-offset-4">
+            integritetspolicy
+          </Link>
+          .
+        </p>
       )}
       <Button type="submit" size="lg" disabled={busy} className="w-full">
         {mode === "signIn" ? "Logga in" : "Skapa konto"}
