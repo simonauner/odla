@@ -57,6 +57,7 @@ Logotypens hex-färger är det enda undantaget från tokenregeln. Den gröna är
 | Välja grödor                                            | `CropToggles` från `src/components/crop-toggles.tsx`, markerar grödor som kräver växthus i zonen                                                                                                                                            |
 | Grödor som små kort med symbol                          | `CropChips` från `src/components/crop-chips.tsx`                                                                                                                                                                                            |
 | Uppgifter att bocka av                                  | `TaskList` från `src/components/task-list.tsx`                                                                                                                                                                                              |
+| Sidan laddar                                            | `SlowLoading` från `src/components/slow-loading.tsx`: `if (query.isPending) return <SlowLoading loading />;`. Visar ingenting de första två sekunderna, sedan "Det här tar ovanligt lång tid…"                                              |
 
 Lägg till fler med `npx shadcn@latest add <namn>` när de behövs, och lägg in dem i tabellen. Komponenter som används på mer än en sida ligger i `src/components/`, aldrig i en fil under `src/routes/`.
 

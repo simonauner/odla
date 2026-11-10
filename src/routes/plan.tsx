@@ -5,6 +5,7 @@ import { tasksBetween } from "@shared/plan";
 import { planSeason, shouldAskToClose } from "@shared/season";
 import { guessLastFrost } from "@shared/zones";
 import { TaskList, type Task } from "@/components/task-list";
+import { SlowLoading } from "@/components/slow-loading";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -78,7 +79,7 @@ function ClosePrompt({ season, due, today }: { season: Season; due: Season["plan
 export function PlanPage() {
   const seasons = useSeasons();
 
-  if (seasons.isPending) return <p className="text-muted-foreground">Laddar din plan…</p>;
+  if (seasons.isPending) return <SlowLoading loading />;
   if (seasons.isError)
     return (
       <Alert variant="destructive">

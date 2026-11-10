@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { CropChips } from "@/components/crop-chips";
 import { ErrorAlert } from "@/components/error-alert";
 import { PageHeader } from "@/components/page-header";
+import { SlowLoading } from "@/components/slow-loading";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { isOpen, placeLabel, seasonYear, useGardens, useSeasons, type Season } from "@/lib/garden";
@@ -45,7 +46,7 @@ export function CropsPage() {
   const gardens = useGardens();
   const seasons = useSeasons();
 
-  if (gardens.isPending || seasons.isPending) return <p className="text-muted-foreground">Laddar…</p>;
+  if (gardens.isPending || seasons.isPending) return <SlowLoading loading />;
   if (gardens.isError || seasons.isError) return <ErrorAlert>Kunde inte hämta dina odlingar.</ErrorAlert>;
 
   const withCrops = seasons.data.filter((s) => s.plantings.length > 0);

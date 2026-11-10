@@ -5,6 +5,7 @@ import { CropToggles } from "@/components/crop-toggles";
 import { ErrorAlert } from "@/components/error-alert";
 import { PageHeader } from "@/components/page-header";
 import { PlaceFields, radioCard } from "@/components/place-fields";
+import { SlowLoading } from "@/components/slow-loading";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -29,7 +30,7 @@ export function SetupPage() {
   // null until the user changes them: then we suggest last year's crops at the place.
   const [cropIds, setCropIds] = useState<string[] | null>(null);
 
-  if (gardens.isPending || seasons.isPending) return <p className="text-muted-foreground">Laddar…</p>;
+  if (gardens.isPending || seasons.isPending) return <SlowLoading loading />;
   if (gardens.isError || seasons.isError) return <ErrorAlert>Kunde inte hämta dina uppgifter.</ErrorAlert>;
 
   // A place has at most one list per year, so only places without one this year can be picked.

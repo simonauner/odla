@@ -8,6 +8,7 @@ import { ErrorAlert } from "@/components/error-alert";
 import { PageHeader } from "@/components/page-header";
 import { radioCard } from "@/components/place-fields";
 import { TaskList } from "@/components/task-list";
+import { SlowLoading } from "@/components/slow-loading";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -98,7 +99,7 @@ export function CropPage() {
   const update = useUpdatePlantings();
   const remove = useRemoveCrop();
 
-  if (seasons.isPending) return <p className="text-muted-foreground">Laddar…</p>;
+  if (seasons.isPending) return <SlowLoading loading />;
   if (seasons.isError) return <ErrorAlert>Kunde inte hämta grödan.</ErrorAlert>;
   const season = seasons.data.find((s) => s.plantings.some((p) => p.id === plantingId));
   const planting = season?.plantings.find((p) => p.id === plantingId);

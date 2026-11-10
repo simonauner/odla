@@ -6,6 +6,7 @@ import { CropChips } from "@/components/crop-chips";
 import { ErrorAlert } from "@/components/error-alert";
 import { PageHeader } from "@/components/page-header";
 import { PlaceFields } from "@/components/place-fields";
+import { SlowLoading } from "@/components/slow-loading";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -144,7 +145,7 @@ export function PlacePage() {
   const deleteGarden = useDeleteGarden();
   const [editing, setEditing] = useState(false);
 
-  if (gardens.isPending || seasons.isPending) return <p className="text-muted-foreground">Laddar…</p>;
+  if (gardens.isPending || seasons.isPending) return <SlowLoading loading />;
   if (gardens.isError || seasons.isError) return <ErrorAlert>Kunde inte hämta dina uppgifter.</ErrorAlert>;
   const garden = gardens.data.find((g) => g.id === gardenId);
   if (!garden) return <ErrorAlert>Hittade inte odlingsplatsen.</ErrorAlert>;
