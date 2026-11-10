@@ -11,7 +11,8 @@ export const paprika: CropTemplate = {
       title: "Förså paprika inomhus",
       description: "Så 0,5 cm djupt i fuktig såjord. Paprika gror långsamt och vill ha 25 °C, gärna med värmematta.",
       anchor: { type: "last_frost" },
-      window: [-84, -70],
+      // Paprika needs about 5 months to ripe fruit, so sow in January–February.
+      window: [-120, -90],
     },
     {
       id: "pot_up",
