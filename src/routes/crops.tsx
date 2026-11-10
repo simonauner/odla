@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { CollapsibleSection } from "@/components/collapsible-section";
 import { CropChips } from "@/components/crop-chips";
 import { ErrorAlert } from "@/components/error-alert";
 import { PageHeader } from "@/components/page-header";
@@ -91,14 +92,17 @@ export function CropsPage() {
       ))}
 
       {earlier.size > 0 && (
-        <details className="group space-y-8">
-          <summary className="cursor-pointer font-heading text-2xl font-semibold text-muted-foreground">
-            Tidigare år
-          </summary>
+        <CollapsibleSection
+          title="Tidigare år"
+          storageKey="crops.earlierYearsOpen"
+          defaultOpen={false}
+          className="space-y-8"
+          summaryClassName="text-muted-foreground"
+        >
           {[...earlier].map(([year, list]) => (
             <YearSection key={year} year={year} seasons={list} />
           ))}
-        </details>
+        </CollapsibleSection>
       )}
 
       {gardens.data.length > 0 && (
