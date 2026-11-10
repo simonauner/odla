@@ -17,6 +17,9 @@ const startPage: Record<string, string> = {
   "<!--crop-list-->": CROPS.map(
     (c) => `<li class="rounded-full bg-secondary px-4 py-1.5 font-medium text-secondary-foreground">${c.name}</li>`,
   ).join(""),
+  "<!--year-->": String(new Date().getFullYear()),
+  // Build time as version, like Kuta: 20261110.1432
+  "<!--version-->": new Date().toISOString().replace(/[-:]/g, "").slice(0, 13).replace("T", "."),
 };
 
 export default defineConfig({
