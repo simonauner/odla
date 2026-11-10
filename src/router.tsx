@@ -11,6 +11,8 @@ import { PlanPage } from "./routes/plan";
 import { ProfilePage } from "./routes/profile";
 import { SetupPage } from "./routes/setup";
 
+const year = new Date().getFullYear();
+
 const navLink = "hover:text-foreground [&.active]:font-semibold [&.active]:text-foreground";
 
 function Root() {
@@ -40,13 +42,23 @@ function Root() {
         )}
       </header>
       {isPublic ? <Outlet /> : session === undefined ? null : session === null ? <LoginPage /> : <Outlet />}
-      <footer className="mt-12 flex gap-4 border-t border-border pt-6 text-sm text-muted-foreground">
-        <Link to="/villkor" className={navLink}>
-          Användarvillkor
-        </Link>
-        <Link to="/integritet" className={navLink}>
-          Integritetspolicy
-        </Link>
+      {/* Same footer as the start page (index.html). */}
+      <footer className="mt-12 flex flex-wrap justify-between gap-2 border-t border-border pt-6 text-sm text-muted-foreground">
+        <p className="flex flex-wrap gap-x-2">
+          <span>© {year} Grodla</span>·
+          <a href="https://hackskaduha.se" className={navLink}>
+            Hack ska du ha AB
+          </a>
+          ·
+          <Link to="/villkor" className={navLink}>
+            Användarvillkor
+          </Link>
+          ·
+          <Link to="/integritet" className={navLink}>
+            Integritetspolicy
+          </Link>
+        </p>
+        <p>Version {import.meta.env.VITE_APP_VERSION}</p>
       </footer>
     </div>
   );
