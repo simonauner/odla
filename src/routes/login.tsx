@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/lib/supabase";
 
-type Mode = "signIn" | "signUp";
+type Mode = "signIn" | "signUp" | "reset";
 
 const messages: Record<string, string> = {
   invalid_credentials: "Fel e-postadress eller lösenord.",
@@ -29,6 +29,14 @@ export function LoginPage() {
     e.preventDefault();
     setBusy(true);
     setError(null);
+    if (mode === "reset") {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/app/nytt-losenord`,
+      });
+      setBusy(false);
+      if (error) return setError((error.code && messages[error.code]) ?? error.message);
+      return setCheckEmail(true);
+    }
     const { data, error } =
       mode === "signIn"
         ? await supabase.auth.signInWithPassword({ email, password })
@@ -47,7 +55,11 @@ export function LoginPage() {
     return (
       <div className="mx-auto max-w-sm space-y-3">
         <PageHeader title="Kolla din mejl" />
-        <p>Vi har skickat en bekräftelselänk till {email}. Klicka på den och logga sedan in här.</p>
+        <p>
+          {mode === "reset"
+            ? `Om det finns ett konto för ${email} har vi skickat en länk dit. Klicka på den för att välja ett nytt lösenord.`
+            : `Vi har skickat en bekräftelselänk till ${email}. Klicka på den och logga sedan in här.`}
+        </p>
         <Button
           variant="link"
           className="px-0"
@@ -64,7 +76,7 @@ export function LoginPage() {
 
   return (
     <form onSubmit={submit} className="mx-auto max-w-sm space-y-4">
-      <PageHeader title={mode === "signIn" ? "Logga in" : "Skapa konto"} />
+      <PageHeader title={{ signIn: "Logga in", signUp: "Skapa konto", reset: "Glömt lösenord" }[mode]} />
       <div className="space-y-2">
         <Label htmlFor="email">E-post</Label>
         <Input
@@ -76,18 +88,37 @@ export function LoginPage() {
           onChange={(e) => setEmail(e.target.value)}
         />
       </div>
-      <div className="space-y-2">
-        <Label htmlFor="password">Lösenord</Label>
-        <Input
-          id="password"
-          type="password"
-          autoComplete={mode === "signIn" ? "current-password" : "new-password"}
-          minLength={8}
-          required
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-      </div>
+      {mode === "reset" ? (
+        <p className="text-sm text-muted-foreground">Vi mejlar dig en länk där du kan välja ett nytt lösenord.</p>
+      ) : (
+        <div className="space-y-2">
+          <div className="flex items-baseline justify-between">
+            <Label htmlFor="password">Lösenord</Label>
+            {mode === "signIn" && (
+              <Button
+                type="button"
+                variant="link"
+                className="h-auto px-0 text-sm"
+                onClick={() => {
+                  setMode("reset");
+                  setError(null);
+                }}
+              >
+                Glömt lösenord?
+              </Button>
+            )}
+          </div>
+          <Input
+            id="password"
+            type="password"
+            autoComplete={mode === "signIn" ? "current-password" : "new-password"}
+            minLength={8}
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </div>
+      )}
       {error && (
         <Alert variant="destructive">
           <AlertDescription>{error}</AlertDescription>
@@ -107,10 +138,10 @@ export function LoginPage() {
         </p>
       )}
       <Button type="submit" size="lg" disabled={busy} className="w-full">
-        {mode === "signIn" ? "Logga in" : "Skapa konto"}
+        {{ signIn: "Logga in", signUp: "Skapa konto", reset: "Skicka länk" }[mode]}
       </Button>
       <p className="text-center text-sm text-muted-foreground">
-        {mode === "signIn" ? "Inget konto än? " : "Har du redan ett konto? "}
+        {mode === "signIn" ? "Inget konto än? " : mode === "signUp" ? "Har du redan ett konto? " : "Kom du på det? "}
         <Button
           type="button"
           variant="link"
