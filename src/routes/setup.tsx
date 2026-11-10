@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { formatDay } from "@/lib/format";
-import { frostHint, placeLabel, seasonYear, useCreateSeason, useGardens, useSeasons } from "@/lib/garden";
+import { frostHint, placeLabel, seasonTarget, seasonYear, useCreateSeason, useGardens, useSeasons } from "@/lib/garden";
 
 const NEW = "new";
 
@@ -39,9 +39,9 @@ export function SetupPage() {
   const existing = free.find((g) => g.id === choice);
   const place = existing ?? (zone === null ? null : { zone, kind });
   const guess = place ? guessLastFrost(place.zone, seasonYear, place.kind) : null;
-  // Last year's season at the place, if any, to start from the same crops and frost date.
+  // The last season at the place, if any, to start from the same crops; seasonTarget picks its frost date.
   const previous = existing && seasons.data.findLast((s) => s.garden.id === existing.id && s.year < seasonYear);
-  const previousFrost = previous && previous.last_frost ? `${seasonYear}${previous.last_frost.slice(4)}` : null;
+  const previousFrost = existing ? seasonTarget(seasons.data, existing.id, seasonYear).lastFrost : null;
   const frost = lastFrost ?? previousFrost ?? guess;
   const crops = cropIds ?? previous?.plantings.map((p) => p.crop_id) ?? [];
 
@@ -117,8 +117,8 @@ export function SetupPage() {
         <section className="space-y-4">
           <h2 className="text-lg font-semibold">När är det frostfritt?</h2>
           <p className="text-sm text-muted-foreground">
-            {previous && previousFrost
-              ? `Förra året satte du frostfritt från ${formatDay(previous.last_frost!)}, så vi har fyllt i samma dag. Vår gissning utifrån zonen är ${formatDay(guess)}.`
+            {previousFrost
+              ? `Förra gången du odlade här satte du frostfritt från ${formatDay(previousFrost)}, så vi har fyllt i samma dag. Vår gissning utifrån zonen är ${formatDay(guess)}.`
               : `Vi gissar ${formatDay(guess)} utifrån zonen${place?.kind === "greenhouse" ? " och att det är ett växthus" : ""}.`}{" "}
             {frostHint(frost)} Ändra datumet om du vet bättre för platsen, det går också att flytta det senare.
           </p>
