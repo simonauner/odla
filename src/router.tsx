@@ -2,6 +2,7 @@ import { Link, Outlet, createRootRoute, createRoute, createRouter, useRouterStat
 import { useSession } from "./lib/auth";
 import { PrivacyPage, TermsPage } from "./routes/legal";
 import { LoginPage } from "./routes/login";
+import { NewPasswordPage } from "./routes/new-password";
 import { AddCropsPage } from "./routes/add-crops";
 import { CropPage } from "./routes/crop";
 import { CropsPage } from "./routes/crops";
@@ -67,6 +68,7 @@ const routeTree = rootRoute.addChildren([
   createRoute({ getParentRoute: () => rootRoute, path: "/odling/$plantingId", component: CropPage }),
   createRoute({ getParentRoute: () => rootRoute, path: "/plats/$gardenId", component: PlacePage }),
   createRoute({ getParentRoute: () => rootRoute, path: "/profil", component: ProfilePage }),
+  createRoute({ getParentRoute: () => rootRoute, path: "/nytt-losenord", component: NewPasswordPage }),
   createRoute({ getParentRoute: () => rootRoute, path: "/integritet", component: PrivacyPage }),
   createRoute({ getParentRoute: () => rootRoute, path: "/villkor", component: TermsPage }),
 ]);
