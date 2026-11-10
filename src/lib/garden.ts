@@ -1,10 +1,32 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { currentSeasonYear } from "@shared/season";
-import type { GardenKind, Zone } from "@shared/zones";
+import type { CROPS } from "@shared/crops";
+import { tomato } from "@shared/crops/tomato";
+import { addDays } from "@shared/dates";
+import { zoneInfo, type GardenKind, type Zone } from "@shared/zones";
+import { formatDay } from "./format";
 import { useUserId } from "./auth";
 import { supabase } from "./supabase";
 
 export const seasonYear = currentSeasonYear();
+
+export const kindLabel: Record<GardenKind, string> = { open: "Friland", greenhouse: "Växthus" };
+
+export function placeLabel(garden: { zone: Zone; kind: GardenKind }): string {
+  return `${zoneInfo(garden.zone).label}, ${kindLabel[garden.kind].toLowerCase()}`;
+}
+
+const tomatoPlantOut = tomato.steps.find((s) => s.id === "plant_out")!.window;
+
+/** Explains what the frost date means, with tomato planting out as the example. */
+export function frostHint(lastFrost: string): string {
+  return `Frostkänsliga plantor som tomater kan då planteras ut ${formatDay(addDays(lastFrost, tomatoPlantOut[0]))}–${formatDay(addDays(lastFrost, tomatoPlantOut[1]))}.`;
+}
+
+/** Whether a crop is hard on open ground in the zone, so it needs a greenhouse there. */
+export function needsGreenhouse(crop: (typeof CROPS)[number], place: { zone: Zone; kind: GardenKind }): boolean {
+  return place.kind === "open" && (place.zone < crop.zones.min || place.zone > crop.zones.max);
+}
 
 /** Throws the request's error. Without one, select, insert and single always return data. */
 function unwrap<T>({ data, error }: { data: T; error: unknown }): NonNullable<T> {

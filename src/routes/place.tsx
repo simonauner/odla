@@ -2,13 +2,18 @@ import { useState } from "react";
 import { Link, useNavigate, useParams } from "@tanstack/react-router";
 import { guessLastFrost } from "@shared/zones";
 import { ConfirmButton } from "@/components/confirm-button";
+import { CropChips } from "@/components/crop-chips";
+import { ErrorAlert } from "@/components/error-alert";
 import { PageHeader } from "@/components/page-header";
+import { PlaceFields } from "@/components/place-fields";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatDay } from "@/lib/format";
 import {
+  frostHint,
   isOpen,
+  placeLabel,
   useDeleteGarden,
   useGardens,
   useSeasons,
@@ -18,8 +23,6 @@ import {
   type Garden,
   type Season,
 } from "@/lib/garden";
-import { CropChips } from "./crops";
-import { ErrorAlert, frostHint, PlaceFields, placeLabel } from "./setup";
 
 function FrostSection({ season }: { season: Season }) {
   const setLastFrost = useSetLastFrost();
